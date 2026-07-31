@@ -132,7 +132,7 @@ GitHub Actions (`.github/workflows/ci.yml`) auf jedem Push/PR:
 | `frontend-tests` | Typecheck, Vitest-Unit-Tests, Produktions-Build |
 | `build-image` | Baut das Laravel-Image nach `ghcr.io/reisi007/analytics` (main → `latest`/`test`, PR → `pr-N`/`test`, sonst Branch-Name) |
 | `e2e-tests` | Playwright gegen den `test`-Stack (hängt an `build-image`) |
-| `release` | Nur main: git-cliff-Changelog, Tag `v<version>`, GitHub-Release mit `dashboard-release.zip` |
+| `release` | Nur bei `v*`-Tag-Push: git-cliff-Changelog (`--latest`), GitHub-Release mit `dashboard-release.zip` |
 
 ## Deployment (Portainer)
 
