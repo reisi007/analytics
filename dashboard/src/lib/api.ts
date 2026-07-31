@@ -1,0 +1,156 @@
+export interface Totals {
+  pageviews: number
+  unique: number
+  events: number
+}
+
+export interface SeriesPoint {
+  date: string
+  pageviews: number
+  unique: number
+  events: number
+}
+
+export interface TopPage {
+  url: string
+  pageviews: number
+}
+
+export interface TopReferrer {
+  referrer: string
+  pageviews: number
+}
+
+export interface TopEvent {
+  name: string
+  events: number
+}
+
+export interface Summary {
+  site: string
+  from: string
+  to: string
+  totals: Totals
+  series: SeriesPoint[]
+  top_pages: TopPage[]
+  top_referrers: TopReferrer[]
+  top_events: TopEvent[]
+}
+
+export interface EventRow {
+  id: number
+  name: string
+  url: string
+  payload: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface PaginatorLink {
+  url: string | null
+  label: string
+  active: boolean
+}
+
+export interface Paginator<T> {
+  data: T[]
+  current_page: number
+  first_page_url: string | null
+  from: number | null
+  last_page: number
+  last_page_url: string | null
+  links: PaginatorLink[]
+  next_page_url: string | null
+  path: string
+  per_page: number
+  prev_page_url: string | null
+  to: number | null
+  total: number
+}
+
+export interface RecentActivity {
+  type: 'pageview' | 'event'
+  url: string
+  title?: string
+  name?: string
+  time: string
+}
+
+export interface Realtime {
+  window_minutes: number
+  pageviews: number
+  unique: number
+  events: number
+  recent: RecentActivity[]
+}
+
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init)
+  if (!response.ok) {
+    throw new ApiError(`Request fehlgeschlagen: ${response.status} ${response.statusText}`, response.status)
+  }
+  return (await response.json()) as T
+}
+
+function buildQuery(params: object): string {
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== '') {
+      search.set(key, String(value))
+    }
+  }
+  const qs = search.toString()
+  return qs ? `?${qs}` : ''
+}
+
+export interface SummaryParams {
+  site: string
+  from?: string
+  to?: string
+}
+
+export interface EventsParams {
+  site: string
+  from?: string
+  to?: string
+  name?: string
+  page?: number
+}
+
+export interface RealtimeParams {
+  site: string
+  minutes?: number
+}
+
+export function summaryUrl(params: SummaryParams): string {
+  return `/api/stats/summary${buildQuery(params)}`
+}
+
+export function eventsUrl(params: EventsParams): string {
+  return `/api/stats/events${buildQuery(params)}`
+}
+
+export function realtimeUrl(params: RealtimeParams): string {
+  return `/api/stats/realtime${buildQuery(params)}`
+}
+
+export function fetchSummary(params: SummaryParams): Promise<Summary> {
+  return fetchJson<Summary>(summaryUrl(params))
+}
+
+export function fetchEvents(params: EventsParams): Promise<Paginator<EventRow>> {
+  return fetchJson<Paginator<EventRow>>(eventsUrl(params))
+}
+
+export function fetchRealtime(params: RealtimeParams): Promise<Realtime> {
+  return fetchJson<Realtime>(realtimeUrl(params))
+}

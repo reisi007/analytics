@@ -25,7 +25,14 @@ class GenerateWeeklyReport extends Command
             return self::FAILURE;
         }
 
-        foreach (array_keys(config('analytics.sites', [])) as $site) {
+        $sites = \App\Models\PageView::query()->distinct()->pluck('site')
+            ->merge(\App\Models\Event::query()->distinct()->pluck('site'))
+            ->merge(array_keys(config('analytics.sites', [])))
+            ->filter()
+            ->unique()
+            ->values();
+
+        foreach ($sites as $site) {
             $stats = $aggregator->summary($site, $from, $to);
             Mail::to($recipient)->send(new WeeklyReportMail($site, $stats, $from, $to));
             $this->info("Weekly report for {$site} sent to {$recipient}.");

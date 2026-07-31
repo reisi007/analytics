@@ -29,6 +29,11 @@ trait MailpitAssertions
         return null;
     }
 
+    protected function deleteMailpitMessages(): void
+    {
+        Http::delete($this->mailpitApi().'/messages');
+    }
+
     protected function assertMailpitSentTo(string $email, int $expectedCount = 1): void
     {
         $matched = array_filter(
