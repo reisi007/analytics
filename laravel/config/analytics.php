@@ -32,4 +32,21 @@ return [
     */
 
     'timezone' => env('ANALYTICS_TIMEZONE', 'Europe/Berlin'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gmail OAuth2 (gmail_rest mailer) token check
+    |--------------------------------------------------------------------------
+    */
+
+    'oauth' => [
+        'client_id' => env('OAUTH_CLIENT_ID'),
+        'client_secret' => env('OAUTH_CLIENT_SECRET'),
+        'refresh_token' => env('OAUTH_REFRESH_TOKEN'),
+    ],
+
+    'make' => [
+        'webhook_url' => env('MAKE_WEBHOOK_URL'),
+        'api_key' => env('MAKE_API_KEY'),
+    ],
 ];

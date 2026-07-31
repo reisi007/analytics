@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('report:weekly')->weeklyOn(1, '09:00')->timezone(config('analytics.timezone'))->withoutOverlapping();
+
+Schedule::command('oauth:check-token')->everySixHours()->withoutOverlapping();
