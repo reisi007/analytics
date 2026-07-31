@@ -49,7 +49,7 @@ services:
       MAIL_PORT: ${MAIL_PORT}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
       REPORT_EMAIL: ${REPORT_EMAIL}
-      STREAM_POLL_INTERVAL: ${STREAM_POLL_INTERVAL:-2}
+      STREAM_POLL_SECONDS: ${STREAM_POLL_SECONDS:-2}
       LOG_CHANNEL: stderr
     command: >
       sh -c "if [ \"$$APP_ENV\" = \"production\" ]; then
@@ -102,7 +102,7 @@ services:
       MAIL_PORT: ${MAIL_PORT}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
       REPORT_EMAIL: ${REPORT_EMAIL}
-      STREAM_POLL_INTERVAL: ${STREAM_POLL_INTERVAL:-2}
+      STREAM_POLL_SECONDS: ${STREAM_POLL_SECONDS:-2}
       LOG_CHANNEL: stderr
     command: php artisan queue:work --sleep=3 --tries=3
     logging:
@@ -140,7 +140,7 @@ services:
       MAIL_PORT: ${MAIL_PORT}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
       REPORT_EMAIL: ${REPORT_EMAIL}
-      STREAM_POLL_INTERVAL: ${STREAM_POLL_INTERVAL:-2}
+      STREAM_POLL_SECONDS: ${STREAM_POLL_SECONDS:-2}
       LOG_CHANNEL: stderr
     command: php artisan schedule:work
     logging:

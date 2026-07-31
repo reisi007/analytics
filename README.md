@@ -23,7 +23,7 @@ Privates Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter T
   `/srv/websites/analytics/` ausgeliefert (Server-Mount `/home/webadmin/websites`), `/api/*` wird von Caddy an
   `analytics_php:9000` durchgereicht. `tracker.js` entsteht als Teil des Frontend-Builds.
 - **CI/CD:** GitHub Actions baut, testet und releast (siehe Abschnitt CI/CD). **Watchtower** hält das
-  Backend-Image automatisch aktuell; Frontend-Updates laufen über `./deploy.sh`.
+  Backend-Image automatisch aktuell; Frontend-Updates laufen über `./sync.sh`.
 - **Auth:** JWT (`tymon/jwt-auth`); `/api/stats/*` und `/api/stream` sind geschützt, `/api/track` bleibt öffentlich.
 
 ```
@@ -46,7 +46,7 @@ Dashboard (SPA, statisch) ──► stats.*/api/stats/* ──► Caddy ──�
 ├── docker-compose.prod.yml   # Portainer-Stack für Produktion (webnet)
 ├── Caddyfile.e2e             # Caddy-Konfiguration für den E2E-Stack
 ├── .github/workflows/ci.yml  # CI/CD-Pipeline
-├── deploy.sh                 # Frontend-Deployment auf dem Produktionsserver
+├── sync.sh                   # Frontend-Deployment via rclone auf den Produktionsserver
 └── .git-cliff.toml           # Changelog-Konfiguration
 ```
 
@@ -161,8 +161,9 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
 
 3. **Caddyfile aktivieren:** Im caddyfile-Repo den Block für `stats.reisinger.pictures, stats.all-the.rest`
    prüfen (FastCGI-Proxy auf `analytics_php:9000`, `flush_interval -1` für SSE) und per `./sync.sh` deployen.
-4. **Frontend aktualisieren:** Auf dem Produktionsserver `./deploy.sh` ausführen — lädt das neueste
-   `dashboard-release.zip` und aktualisiert Dashboard + `tracker.js`.
+4. **Frontend aktualisieren:** Lokal `./sync.sh` ausführen — lädt das neueste `dashboard-release.zip` herunter
+   und rclone-synct das statische Frontend (Dashboard + `tracker.js`) per SFTP nach
+   `/home/webadmin/websites/analytics` (auf dem Server erreichbar unter `/srv/websites/analytics`).
 5. **Watchtower (optional):** Ein Watchtower-Container hält das Backend-Image automatisch aktuell, z. B.:
 
    ```
@@ -171,7 +172,7 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
      ghcr.io/containrrr/watchtower --interval 86400 --cleanup
    ```
 
-   Watchtower aktualisiert nur das Image — Dashboard-Updates bleiben bei `./deploy.sh`.
+   Watchtower aktualisiert nur das Image — Dashboard-Updates bleiben bei `./sync.sh`.
 
 ## Sites verwalten
 
