@@ -54,7 +54,7 @@ export function LoginPage() {
               />
             </label>
             {error && <div className="alert alert-error">{error}</div>}
-            <button type="submit" disabled={submitting} className={`btn btn-primary w-full ${submitting ? 'btn-disabled' : ''}`}>
+            <button type="submit" disabled={submitting} className={`btn btn-primary w-full mt-6 ${submitting ? 'btn-disabled' : ''}`}>
               {submitting ? 'Anmelden…' : 'Anmelden'}
             </button>
           </form>
