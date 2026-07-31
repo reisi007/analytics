@@ -7,7 +7,14 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
-    proxy: { '/api': 'http://tracking.test' },
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_PROXY || 'https://tracking.test',
+        changeOrigin: true,
+        secure: false,
+        cookieDomainRewrite: '.localhost',
+      },
+    },
   },
   test: {
     environment: 'jsdom',

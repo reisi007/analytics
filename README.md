@@ -86,7 +86,7 @@ pnpm install
 pnpm dev
 ```
 
-Vite läuft auf `http://localhost:5173` und proxyt `/api` an `http://tracking.test`.
+Vite läuft auf `http://localhost:5173` und proxyt `/api` an `https://tracking.test`. Das Proxy-Ziel lässt sich per `VITE_API_PROXY`-Umgebungsvariable überschreiben und fällt sonst auf `https://tracking.test` zurück.
 
 ### Sites seeden
 
