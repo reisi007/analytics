@@ -18,7 +18,7 @@ Privates Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter T
 ## Architektur
 
 - **Backend:** Laravel 13, PHP 8.5, Postgres 18. Reine API ohne Laravel-UI. Läuft als Docker-Image
-  `ghcr.io/reisi007/analytics/laravel` (php:8.5-fpm-alpine).
+  `ghcr.io/reisi007/analytics` (php:8.5-fpm-alpine).
 - **Frontend:** React 19 + Vite 8 + TypeScript 7 + daisyUI 5. Wird **statisch** von Caddy aus
   `/srv/websites/analytics/` ausgeliefert (Server-Mount `/home/webadmin/websites`), `/api/*` wird von Caddy an
   `analytics_php:9000` durchgereicht. `tracker.js` entsteht als Teil des Frontend-Builds.
@@ -130,7 +130,7 @@ GitHub Actions (`.github/workflows/ci.yml`) auf jedem Push/PR:
 |---|---|
 | `php-tests` | PHPUnit (parallel, `--processes=4`), Mailpit-Service auf :1028/:8028 |
 | `frontend-tests` | Typecheck, Vitest-Unit-Tests, Produktions-Build |
-| `build-image` | Baut das Laravel-Image nach `ghcr.io/reisi007/analytics/laravel` (main → `latest`/`test`, PR → `pr-N`/`test`, sonst Branch-Name) |
+| `build-image` | Baut das Laravel-Image nach `ghcr.io/reisi007/analytics` (main → `latest`/`test`, PR → `pr-N`/`test`, sonst Branch-Name) |
 | `e2e-tests` | Playwright gegen den `test`-Stack (hängt an `build-image`) |
 | `release` | Nur main: git-cliff-Changelog, Tag `v<version>`, GitHub-Release mit `dashboard-release.zip` |
 

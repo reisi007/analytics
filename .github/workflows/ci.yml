@@ -98,7 +98,7 @@ jobs:
         id: tags
         shell: bash
         run: |
-          IMAGE=ghcr.io/reisi007/analytics/laravel
+          IMAGE=ghcr.io/reisi007/analytics
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "tags=${IMAGE}:latest,${IMAGE}:test" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -159,7 +159,7 @@ jobs:
         run: pnpm build
 
       - name: Pull E2E image
-        run: docker pull ghcr.io/reisi007/analytics/laravel:test
+        run: docker pull ghcr.io/reisi007/analytics:test
 
       - name: Start E2E stack
         env:

@@ -22,7 +22,7 @@ services:
       - analytics_internal
 
   analytics_php:
-    image: ghcr.io/reisi007/analytics/laravel:latest
+    image: ghcr.io/reisi007/analytics:latest
     container_name: analytics_php
     restart: unless-stopped
     working_dir: /var/www/html
@@ -83,7 +83,7 @@ services:
       - webnet
 
   analytics_worker:
-    image: ghcr.io/reisi007/analytics/laravel:latest
+    image: ghcr.io/reisi007/analytics:latest
     container_name: analytics_worker
     restart: unless-stopped
     working_dir: /var/www/html
@@ -126,7 +126,7 @@ services:
       - analytics_internal
 
   analytics_scheduler:
-    image: ghcr.io/reisi007/analytics/laravel:latest
+    image: ghcr.io/reisi007/analytics:latest
     container_name: analytics_scheduler
     restart: unless-stopped
     working_dir: /var/www/html
@@ -169,7 +169,7 @@ services:
       - analytics_internal
 
   analytics_token_checker:
-    image: ghcr.io/reisi007/analytics/laravel:latest
+    image: ghcr.io/reisi007/analytics:latest
     container_name: analytics_token_checker
     restart: unless-stopped
     environment:
