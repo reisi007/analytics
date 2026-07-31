@@ -9,6 +9,7 @@ export interface SiteContextValue {
   sites: string[]
   sitesConfig: SitesConfig
   loading: boolean
+  refresh: () => void
 }
 
 export const SiteContext = createContext<SiteContextValue>({
@@ -17,6 +18,7 @@ export const SiteContext = createContext<SiteContextValue>({
   sites: [],
   sitesConfig: {},
   loading: false,
+  refresh: () => {},
 })
 
 export function useSite(): SiteContextValue {
@@ -29,12 +31,15 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const [sitesConfig, setSitesConfig] = useState<SitesConfig>({})
   const [loading, setLoading] = useState(false)
   const [authVersion, setAuthVersion] = useState(0)
+  const [refreshVersion, setRefreshVersion] = useState(0)
   const explicitlySet = useRef(false)
 
   const setSite = (next: string) => {
     explicitlySet.current = true
     setSiteState(next)
   }
+
+  const refresh = () => setRefreshVersion((version) => version + 1)
 
   useEffect(() => {
     return onAuthChange(() => setAuthVersion((version) => version + 1))
@@ -75,7 +80,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [authVersion])
+  }, [authVersion, refreshVersion])
 
-  return <SiteContext.Provider value={{ site, setSite, sites, sitesConfig, loading }}>{children}</SiteContext.Provider>
+  return (
+    <SiteContext.Provider value={{ site, setSite, sites, sitesConfig, loading, refresh }}>{children}</SiteContext.Provider>
+  )
 }

@@ -70,6 +70,18 @@ export interface Paginator<T> {
   total: number
 }
 
+export interface SiteRow {
+  id: number
+  site: string
+  aliases: string[]
+  created_at: string
+}
+
+export interface SiteInput {
+  site: string
+  aliases: string[]
+}
+
 export interface RecentActivity {
   type: 'pageview' | 'event'
   url: string
@@ -124,6 +136,10 @@ export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> 
 
   if (!response.ok) {
     throw await toApiError(response)
+  }
+
+  if (response.status === 204) {
+    return undefined as T
   }
 
   return (await response.json()) as T
@@ -225,4 +241,29 @@ export function fetchSites(): Promise<string[]> {
 
 export function fetchSitesConfig(): Promise<SitesConfig> {
   return fetchJson<SitesConfig>('/ingest/config/sites')
+}
+
+export function fetchSitesAll(): Promise<SiteRow[]> {
+  return fetchJson<SiteRow[]>('/ingest/sites')
+}
+
+export function createSite(input: SiteInput): Promise<SiteRow> {
+  return fetchJson<SiteRow>('/ingest/sites', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateSite(id: number, input: Pick<SiteInput, 'aliases'>): Promise<SiteRow> {
+  return fetchJson<SiteRow>(`/ingest/sites/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
+export function deleteSite(id: number, deleteData: boolean): Promise<void> {
+  const query = deleteData ? '?delete_data=1' : ''
+  return fetchJson<void>(`/ingest/sites/${id}${query}`, { method: 'DELETE' })
 }

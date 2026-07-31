@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ConfigController;
+use App\Http\Controllers\Api\SitesController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\StreamController;
 use App\Http\Controllers\Api\TrackController;
@@ -23,4 +24,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/stats/events', [StatsController::class, 'events'])->name('stats.events');
     Route::get('/stats/realtime', [StatsController::class, 'realtime'])->name('stats.realtime');
     Route::get('/stats/sites', [StatsController::class, 'sites'])->name('stats.sites');
+
+    Route::get('/sites', [SitesController::class, 'index'])->name('sites.index');
+    Route::post('/sites', [SitesController::class, 'store'])->name('sites.store');
+    Route::put('/sites/{site}', [SitesController::class, 'update'])->name('sites.update');
+    Route::delete('/sites/{site}', [SitesController::class, 'destroy'])->name('sites.destroy');
 });

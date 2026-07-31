@@ -6,6 +6,7 @@ import { EventsPage } from './pages/EventsPage'
 import { LoginPage } from './pages/LoginPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { RealtimePage } from './pages/RealtimePage'
+import { SitesPage } from './pages/SitesPage'
 
 export function ProtectedRoute() {
   if (!isAuthenticated()) {
@@ -100,6 +101,14 @@ function DashboardLayout() {
                 Events
               </NavLink>
             </li>
+            <li>
+              <NavLink
+                to="/sites"
+                className={({ isActive }) => (isActive ? 'btn btn-ghost btn-active' : 'btn btn-ghost')}
+              >
+                Sites
+              </NavLink>
+            </li>
           </ul>
           <SiteSwitcher />
           <AuthControls />
@@ -123,6 +132,7 @@ export function App() {
               <Route index element={<OverviewPage />} />
               <Route path="/realtime" element={<RealtimePage />} />
               <Route path="/events" element={<EventsPage />} />
+              <Route path="/sites" element={<SitesPage />} />
             </Route>
           </Route>
         </Routes>
