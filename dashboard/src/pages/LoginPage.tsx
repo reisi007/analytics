@@ -24,8 +24,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-base-200">
-      <div className="flex flex-col items-center gap-2 mb-6">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-base-200">
+      <div className="flex flex-col items-center gap-2">
         <img src="/favicon.svg" alt="Analytics Logo" className="h-14 w-14 rounded-box" />
         <span className="text-2xl font-bold">Analytics</span>
       </div>
