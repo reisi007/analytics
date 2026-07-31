@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\StreamController;
 use App\Http\Controllers\Api\TrackController;
@@ -13,6 +14,8 @@ Route::post('/track', [TrackController::class, 'store'])->name('track');
 Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
     Route::post('/auth/me', [AuthController::class, 'me'])->name('auth.me');
+
+    Route::get('/config/sites', [ConfigController::class, 'sites'])->name('config.sites');
 
     Route::get('/stream', [StreamController::class, 'stream'])->name('stream');
 

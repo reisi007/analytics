@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\PageView;
+use App\Models\Site;
 use App\Services\StatsAggregator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -74,7 +75,7 @@ class StatsController extends Controller
     {
         $fromPageviews = PageView::query()->distinct()->pluck('site');
         $fromEvents = Event::query()->distinct()->pluck('site');
-        $configured = array_keys(config('analytics.sites', []));
+        $configured = Site::query()->pluck('site');
 
         $sites = collect($fromPageviews)
             ->merge($fromEvents)

@@ -1,4 +1,5 @@
 import { clearToken, clearUser, getToken } from './auth'
+import type { SitesConfig } from './site'
 
 export interface Totals {
   pageviews: number
@@ -180,4 +181,8 @@ export function fetchRealtime(params: RealtimeParams): Promise<Realtime> {
 
 export function fetchSites(): Promise<string[]> {
   return fetchJson<string[]>('/api/stats/sites')
+}
+
+export function fetchSitesConfig(): Promise<SitesConfig> {
+  return fetchJson<SitesConfig>('/api/config/sites')
 }

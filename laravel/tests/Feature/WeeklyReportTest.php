@@ -3,13 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\PageView;
+use App\Models\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\MailpitAssertions;
 use Tests\TestCase;
 
 class WeeklyReportTest extends TestCase
 {
-    use RefreshDatabase, MailpitAssertions;
+    use MailpitAssertions, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -21,13 +22,11 @@ class WeeklyReportTest extends TestCase
     {
         config([
             'analytics.report.email' => 'report@example.com',
-            'analytics.sites' => [
-                'reisinger.pictures' => [
-                    'reisinger.pictures',
-                    'www.reisinger.pictures',
-                    'stats.reisinger.pictures',
-                ],
-            ],
+        ]);
+
+        Site::create([
+            'site' => 'reisinger.pictures',
+            'aliases' => ['reisinger.pictures', 'www.reisinger.pictures', 'stats.reisinger.pictures'],
         ]);
 
         PageView::create([
@@ -50,7 +49,6 @@ class WeeklyReportTest extends TestCase
     {
         config([
             'analytics.report.email' => 'report@example.com',
-            'analytics.sites' => [],
         ]);
 
         PageView::create([

@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Mail\WeeklyReportMail;
+use App\Models\Event;
+use App\Models\PageView;
+use App\Models\Site;
 use App\Services\StatsAggregator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
@@ -25,9 +28,9 @@ class GenerateWeeklyReport extends Command
             return self::FAILURE;
         }
 
-        $sites = \App\Models\PageView::query()->distinct()->pluck('site')
-            ->merge(\App\Models\Event::query()->distinct()->pluck('site'))
-            ->merge(array_keys(config('analytics.sites', [])))
+        $sites = PageView::query()->distinct()->pluck('site')
+            ->merge(Event::query()->distinct()->pluck('site'))
+            ->merge(Site::query()->pluck('site'))
             ->filter()
             ->unique()
             ->values();

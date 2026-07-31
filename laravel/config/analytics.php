@@ -4,31 +4,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Sites
-    |--------------------------------------------------------------------------
-    |
-    | Mapping of canonical site names to known host aliases. Used by the
-    | dashboard to map its own host (stats.*) back to the tracked site.
-    | The tracker itself does NOT send a site — the API derives the site
-    | from the HTTP Referer header of the tracking request.
-    |
-    */
-
-    'sites' => [
-        'reisinger.pictures' => [
-            'reisinger.pictures',
-            'www.reisinger.pictures',
-            'stats.reisinger.pictures',
-        ],
-        'all-the.rest' => [
-            'all-the.rest',
-            'www.all-the.rest',
-            'stats.all-the.rest',
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Realtime stream (SSE)
     |--------------------------------------------------------------------------
     */

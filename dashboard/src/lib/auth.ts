@@ -1,16 +1,31 @@
 const TOKEN_KEY = 'analytics_token'
 const USER_KEY = 'analytics_user'
 
+const authListeners = new Set<() => void>()
+
+function notifyAuthChange(): void {
+  for (const listener of authListeners) listener()
+}
+
+export function onAuthChange(listener: () => void): () => void {
+  authListeners.add(listener)
+  return () => {
+    authListeners.delete(listener)
+  }
+}
+
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
 }
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token)
+  notifyAuthChange()
 }
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY)
+  notifyAuthChange()
 }
 
 export function getUser(): any | null {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, fetchEvents, fetchJson, fetchRealtime, fetchSites, fetchSummary } from './api'
+import { ApiError, fetchEvents, fetchJson, fetchRealtime, fetchSites, fetchSitesConfig, fetchSummary } from './api'
 
 describe('api helpers', () => {
   const fetchMock = vi.fn()
@@ -97,6 +97,23 @@ describe('api helpers', () => {
 
       await expect(fetchSites()).resolves.toEqual(['reisinger.pictures', 'all-the.rest'])
       expect(fetchMock).toHaveBeenCalledWith('/api/stats/sites', undefined)
+    })
+  })
+
+  describe('fetchSitesConfig', () => {
+    it('hits /api/config/sites with the auth header and returns the aliases map', async () => {
+      localStorage.setItem('analytics_token', 'test-token')
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ 'reisinger.pictures': ['stats.reisinger.pictures'] }),
+      })
+
+      await expect(fetchSitesConfig()).resolves.toEqual({ 'reisinger.pictures': ['stats.reisinger.pictures'] })
+
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/config/sites')
+      const headers = (init as RequestInit).headers as Headers
+      expect(headers.get('Authorization')).toBe('Bearer test-token')
     })
   })
 })

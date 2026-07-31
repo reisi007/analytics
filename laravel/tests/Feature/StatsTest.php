@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Event;
 use App\Models\PageView;
+use App\Models\Site;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -148,6 +149,16 @@ class StatsTest extends TestCase
     public function test_sites_lists_all_sites(): void
     {
         $token = $this->login();
+
+        Site::create([
+            'site' => 'reisinger.pictures',
+            'aliases' => ['reisinger.pictures', 'www.reisinger.pictures'],
+        ]);
+
+        Site::create([
+            'site' => 'all-the.rest',
+            'aliases' => ['all-the.rest'],
+        ]);
 
         PageView::create([
             'site' => 'dev.reisinger.pictures',

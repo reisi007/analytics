@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\PageView;
-use App\Support\Site;
+use App\Support\SiteDetector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,6 +13,12 @@ class TrackController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        $site = SiteDetector::fromRequest($request);
+
+        if ($site === null) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
         $payload = $this->payload($request);
 
         $validated = validator($payload, [
@@ -27,7 +33,6 @@ class TrackController extends Controller
             'payload' => ['nullable', 'array'],
         ])->validate();
 
-        $site = Site::fromRequest($request);
         $sessionHash = $this->sessionHash($request);
 
         if ($validated['type'] === 'pageview') {
@@ -51,7 +56,7 @@ class TrackController extends Controller
             ]);
         }
 
-        return response()->json(null, 204, ['Access-Control-Allow-Origin' => '*']);
+        return response()->json(null, 204, ['Access-Control-Allow-Origin' => $this->refererOrigin($request)]);
     }
 
     /**
@@ -76,5 +81,23 @@ class TrackController extends Controller
         $raw = $request->ip().'|'.($request->userAgent() ?? '').'|'.now()->toDateString();
 
         return hash('sha256', $raw);
+    }
+
+    /**
+     * Full origin (scheme + host) of the Referer header, echoed back as the
+     * CORS allow-origin value for the tracking response.
+     */
+    private function refererOrigin(Request $request): string
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer === null || $referer === '') {
+            return '*';
+        }
+
+        $scheme = (string) (parse_url($referer, PHP_URL_SCHEME) ?? '');
+        $host = (string) (parse_url($referer, PHP_URL_HOST) ?? '');
+
+        return $scheme === '' || $host === '' ? '*' : $scheme.'://'.$host;
     }
 }

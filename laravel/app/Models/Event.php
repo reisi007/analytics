@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Event extends Model
 {
     public const CREATED_AT = 'created_at';
+
     public const UPDATED_AT = null;
 
     protected $fillable = [
