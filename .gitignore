@@ -1,7 +1,3 @@
-# --- Agent docs ---
-Agents.md
-Agents.todo.md
-
 # --- Secrets ---
 .env
 .env.*
