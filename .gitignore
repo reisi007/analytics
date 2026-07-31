@@ -1,0 +1,33 @@
+# --- Agent docs ---
+Agents.md
+Agents.todo.md
+
+# --- PHP / Laravel ---
+laravel/vendor/
+laravel/.env
+laravel/.env.*.local
+laravel/public/build
+laravel/public/hot
+laravel/storage/*.key
+laravel/storage/app/*
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/views/*
+laravel/storage/logs/*
+laravel/.phpunit.result.cache
+laravel/.phpunit.cache
+
+# --- Node / Frontend ---
+dashboard/node_modules/
+dashboard/dist/
+dashboard/coverage/
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+
+# --- OS / Editor ---
+.DS_Store
+*.log
+.idea/
+.vscode/
