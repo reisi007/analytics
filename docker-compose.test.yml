@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: analytics_db_test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: analytics_test
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics_test
+    volumes:
+      - db_data_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d analytics_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  php:
+    image: ghcr.io/reisi007/analytics/laravel:test
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: analytics_php_test
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /var/www/html
+    environment:
+      APP_ENV: testing
+      APP_DEBUG: "true"
+      APP_KEY: ${APP_KEY:-base64:Zm9vYmFyYmF6YmFyYmF6YmFyYmF6YmFyYmF6YmFyYmF6YmFyYmF6}
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: analytics_test
+      DB_USERNAME: analytics
+      DB_PASSWORD: analytics_test
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: analytics_mailpit_test
+    restart: unless-stopped
+    ports:
+      - "1028:1025"
+      - "8028:8025"
+
+  web:
+    image: caddy:2-alpine
+    container_name: analytics_web_test
+    restart: unless-stopped
+    depends_on:
+      - php
+    ports:
+      - "8081:80"
+    volumes:
+      - ./Caddyfile.e2e:/etc/caddy/Caddyfile:ro
+      - ./dashboard/dist:/srv/dashboard:ro
+
+volumes:
+  db_data_test:

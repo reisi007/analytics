@@ -1,0 +1,25 @@
+{
+	auto_https off
+}
+
+:8080 {
+	handle /api/* {
+		reverse_proxy php:9000 {
+			flush_interval -1
+			transport fastcgi {
+				env SCRIPT_FILENAME /var/www/html/public/index.php
+			}
+		}
+	}
+
+	handle /tracker.js {
+		root * /srv/dashboard
+		file_server
+	}
+
+	handle {
+		root * /srv/dashboard
+		try_files {path} /index.html
+		file_server
+	}
+}

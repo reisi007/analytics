@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: analytics_db_local
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics
+    volumes:
+      - db_data_local:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: analytics_mailpit_local
+    restart: unless-stopped
+    ports:
+      - "1027:1025"
+      - "8027:8025"
+
+volumes:
+  db_data_local:
