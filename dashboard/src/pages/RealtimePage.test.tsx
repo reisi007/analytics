@@ -51,7 +51,7 @@ describe('RealtimePage', () => {
       </MemoryRouter>,
     )
     expect(MockEventSource.instances).toHaveLength(1)
-    expect(MockEventSource.instances[0].url).toContain('/api/stream?')
+    expect(MockEventSource.instances[0].url).toContain('/ingest/stream?')
     expect(MockEventSource.instances[0].url).toContain('token=test')
     expect(MockEventSource.instances[0].url).toContain('site=')
   })
@@ -125,7 +125,7 @@ describe('RealtimePage', () => {
 
       expect(MockEventSource.instances).toHaveLength(2)
       expect(MockEventSource.instances[0].closed).toBe(true)
-      expect(MockEventSource.instances[1].url).toContain('/api/stream?')
+      expect(MockEventSource.instances[1].url).toContain('/ingest/stream?')
       expect(MockEventSource.instances[1].url).toContain('token=test')
     } finally {
       vi.useRealTimers()

@@ -37,7 +37,7 @@ describe('auth helpers', () => {
 
     await login('admin@example.com', 'secret')
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/auth/login', {
+    expect(fetchMock).toHaveBeenCalledWith('/ingest/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'admin@example.com', password: 'secret' }),
@@ -62,7 +62,7 @@ describe('auth helpers', () => {
 
     await logout()
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/auth/logout', {
+    expect(fetchMock).toHaveBeenCalledWith('/ingest/auth/logout', {
       method: 'POST',
       headers: { Authorization: 'Bearer jwt' },
     })

@@ -31,7 +31,7 @@ class TrackTest extends TestCase
 
     public function test_pageview_ingested_with_site_from_referer(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'pageview',
             'url' => '/foo',
             'title' => 'Foo',
@@ -46,7 +46,7 @@ class TrackTest extends TestCase
 
     public function test_allowed_referrer_returns_origin_cors_header(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'pageview',
             'url' => '/foo',
         ], ['Referer' => 'https://reisinger.pictures/'])
@@ -61,7 +61,7 @@ class TrackTest extends TestCase
 
     public function test_www_alias_maps_to_canonical(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'pageview',
             'url' => '/x',
         ], ['Referer' => 'https://www.reisinger.pictures/x'])
@@ -75,7 +75,7 @@ class TrackTest extends TestCase
 
     public function test_event_ingested(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'event',
             'name' => 'click',
             'url' => '/foo',
@@ -91,7 +91,7 @@ class TrackTest extends TestCase
 
     public function test_invalid_payload_returns_422(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'url' => '/foo',
         ], ['Referer' => 'https://reisinger.pictures/'])
             ->assertStatus(422);
@@ -99,12 +99,12 @@ class TrackTest extends TestCase
 
     public function test_session_hash_stable_within_same_day(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'pageview',
             'url' => '/foo',
         ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
 
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'pageview',
             'url' => '/bar',
         ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
@@ -114,7 +114,7 @@ class TrackTest extends TestCase
 
     public function test_unknown_referrer_host_is_blocked(): void
     {
-        $this->postJson('/api/track', [
+        $this->postJson('/ingest/track', [
             'type' => 'pageview',
             'url' => '/x',
         ], ['Referer' => 'https://evil.example/'])

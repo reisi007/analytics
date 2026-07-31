@@ -44,7 +44,7 @@ export function RealtimePage() {
       setError(null)
       const params = new URLSearchParams({ token: getToken() ?? '' })
       if (site) params.set('site', site)
-      source = new EventSource(`/api/stream?${params.toString()}`)
+      source = new EventSource(`/ingest/stream?${params.toString()}`)
       source.addEventListener('open', () => setConnected(true))
       source.addEventListener('message', (event) => {
         let item: StreamItem

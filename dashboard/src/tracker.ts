@@ -29,7 +29,7 @@ export function resolveApiBase(currentSrc: string | null, origin: string): strin
 }
 
 export function sendTrack(apiBase: string, data: TrackData): void {
-  const url = `${apiBase}/api/track`
+  const url = `${apiBase}/ingest/track`
   const body = JSON.stringify(data)
   const blob = new Blob([body], { type: 'text/plain' })
 

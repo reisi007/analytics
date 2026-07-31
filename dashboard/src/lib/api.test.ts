@@ -100,54 +100,54 @@ describe('api helpers', () => {
     it('builds the summary URL with site/from/to', async () => {
       fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
       await fetchSummary({ site: 'example.com', from: '2026-07-01', to: '2026-07-31' })
-      expect(urlOf(0)).toBe('/api/stats/summary?site=example.com&from=2026-07-01&to=2026-07-31')
+      expect(urlOf(0)).toBe('/ingest/stats/summary?site=example.com&from=2026-07-01&to=2026-07-31')
     })
 
     it('omits empty params from the summary URL', async () => {
       fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
       await fetchSummary({ site: 'example.com' })
-      expect(urlOf(0)).toBe('/api/stats/summary?site=example.com')
+      expect(urlOf(0)).toBe('/ingest/stats/summary?site=example.com')
     })
 
     it('omits the site param when it is null', async () => {
       fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
       await fetchSummary({ site: null })
-      expect(urlOf(0)).toBe('/api/stats/summary')
+      expect(urlOf(0)).toBe('/ingest/stats/summary')
     })
 
     it('omits the site param when it is an empty string', async () => {
       fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
       await fetchSummary({ site: '' })
-      expect(urlOf(0)).toBe('/api/stats/summary')
+      expect(urlOf(0)).toBe('/ingest/stats/summary')
     })
 
     it('builds the events URL with name and page', async () => {
       fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
       await fetchEvents({ site: 'example.com', name: 'download', page: 3 })
-      expect(urlOf(0)).toBe('/api/stats/events?site=example.com&name=download&page=3')
+      expect(urlOf(0)).toBe('/ingest/stats/events?site=example.com&name=download&page=3')
     })
 
     it('builds the realtime URL with minutes', async () => {
       fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
       await fetchRealtime({ site: 'example.com', minutes: 30 })
-      expect(urlOf(0)).toBe('/api/stats/realtime?site=example.com&minutes=30')
+      expect(urlOf(0)).toBe('/ingest/stats/realtime?site=example.com&minutes=30')
     })
   })
 
   describe('fetchSites', () => {
-    it('hits /api/stats/sites and returns the site list', async () => {
+    it('hits /ingest/stats/sites and returns the site list', async () => {
       fetchMock.mockResolvedValue({
         ok: true,
         json: async () => ['reisinger.pictures', 'all-the.rest'],
       })
 
       await expect(fetchSites()).resolves.toEqual(['reisinger.pictures', 'all-the.rest'])
-      expect(urlOf(0)).toBe('/api/stats/sites')
+      expect(urlOf(0)).toBe('/ingest/stats/sites')
     })
   })
 
   describe('fetchSitesConfig', () => {
-    it('hits /api/config/sites with the auth header and returns the aliases map', async () => {
+    it('hits /ingest/config/sites with the auth header and returns the aliases map', async () => {
       localStorage.setItem('analytics_token', 'test-token')
       fetchMock.mockResolvedValue({
         ok: true,
@@ -156,7 +156,7 @@ describe('api helpers', () => {
 
       await expect(fetchSitesConfig()).resolves.toEqual({ 'reisinger.pictures': ['stats.reisinger.pictures'] })
 
-      expect(urlOf(0)).toBe('/api/config/sites')
+      expect(urlOf(0)).toBe('/ingest/config/sites')
       expect(headersOf(0).get('Authorization')).toBe('Bearer test-token')
     })
   })

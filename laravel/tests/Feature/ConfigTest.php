@@ -30,12 +30,12 @@ class ConfigTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $token = $this->postJson('/api/auth/login', [
+        $token = $this->postJson('/ingest/auth/login', [
             'email' => 'admin@analytics.local',
             'password' => 'password',
         ])->assertOk()->json('token');
 
-        $this->getJson('/api/config/sites', ['Authorization' => "Bearer {$token}"])
+        $this->getJson('/ingest/config/sites', ['Authorization' => "Bearer {$token}"])
             ->assertOk()
             ->assertExactJson([
                 'reisinger.pictures' => [
@@ -53,7 +53,7 @@ class ConfigTest extends TestCase
 
     public function test_config_sites_requires_authentication(): void
     {
-        $this->getJson('/api/config/sites')
+        $this->getJson('/ingest/config/sites')
             ->assertUnauthorized();
     }
 

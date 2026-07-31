@@ -3,7 +3,7 @@
 }
 
 :8080 {
-	handle /api/* {
+	handle /ingest/* {
 		reverse_proxy php:9000 {
 			flush_interval -1
 			transport fastcgi {

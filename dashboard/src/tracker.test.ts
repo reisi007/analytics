@@ -28,7 +28,7 @@ describe('tracker', () => {
   })
 
   describe('sendTrack', () => {
-    it('sends a text/plain beacon to /api/track', () => {
+    it('sends a text/plain beacon to /ingest/track', () => {
       const sendBeacon = vi.fn((_url: string, _blob: Blob) => true)
       vi.stubGlobal('navigator', { ...navigator, sendBeacon })
 
@@ -36,7 +36,7 @@ describe('tracker', () => {
 
       expect(sendBeacon).toHaveBeenCalledTimes(1)
       const [url, blob] = sendBeacon.mock.calls[0]
-      expect(url).toBe('https://stats.example.com/api/track')
+      expect(url).toBe('https://stats.example.com/ingest/track')
       expect(blob.type).toBe('text/plain')
       expect(fetchMock).not.toHaveBeenCalled()
     })
@@ -47,7 +47,7 @@ describe('tracker', () => {
       sendTrack('https://stats.example.com', { type: 'event', name: 'click', url: '/' })
 
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://stats.example.com/api/track',
+        'https://stats.example.com/ingest/track',
         expect.objectContaining({
           method: 'POST',
           keepalive: true,

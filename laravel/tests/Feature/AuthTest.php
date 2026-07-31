@@ -22,7 +22,7 @@ class AuthTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
+        $response = $this->postJson('/ingest/auth/login', [
             'email' => 'admin@analytics.local',
             'password' => 'password',
         ])->assertOk();
@@ -40,7 +40,7 @@ class AuthTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
+        $response = $this->postJson('/ingest/auth/login', [
             'email' => 'admin@analytics.local',
             'password' => 'password',
         ]);
@@ -67,7 +67,7 @@ class AuthTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $this->postJson('/api/auth/login', [
+        $this->postJson('/ingest/auth/login', [
             'email' => 'admin@analytics.local',
             'password' => 'wrong-password',
         ])->assertStatus(401)
@@ -79,13 +79,13 @@ class AuthTest extends TestCase
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $this->getJson("/api/stats/summary?site=reisinger.pictures&from={$from}&to={$to}")
+        $this->getJson("/ingest/stats/summary?site=reisinger.pictures&from={$from}&to={$to}")
             ->assertStatus(401);
     }
 
     public function test_protected_api_returns_401_without_accept_json_header(): void
     {
-        $this->get('/api/stats/events?site=localhost&page=1')
+        $this->get('/ingest/stats/events?site=localhost&page=1')
             ->assertStatus(401)
             ->assertJson(['message' => 'Unauthenticated.']);
     }
@@ -105,7 +105,7 @@ class AuthTest extends TestCase
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $this->getJson("/api/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", [
+        $this->getJson("/ingest/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", [
             'Authorization' => "Bearer {$this->token}",
         ])->assertOk()
             ->assertJsonPath('totals.pageviews', 1);
@@ -126,7 +126,7 @@ class AuthTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $response = $this->get("/api/stream?token={$this->token}&site=reisinger.pictures");
+        $response = $this->get("/ingest/stream?token={$this->token}&site=reisinger.pictures");
 
         $response->assertStatus(200);
         $this->assertStringStartsWith('text/event-stream', (string) $response->headers->get('content-type'));
@@ -140,14 +140,14 @@ class AuthTest extends TestCase
     {
         $this->login();
 
-        $this->postJson('/api/auth/logout', [], [
+        $this->postJson('/ingest/auth/logout', [], [
             'Authorization' => "Bearer {$this->token}",
         ])->assertStatus(204);
 
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $this->getJson("/api/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", [
+        $this->getJson("/ingest/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", [
             'Authorization' => "Bearer {$this->token}",
         ])->assertStatus(401);
     }

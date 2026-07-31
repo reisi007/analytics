@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
+      '/ingest': {
         target: process.env.VITE_API_PROXY || 'https://tracking.test',
         changeOrigin: true,
         secure: false,

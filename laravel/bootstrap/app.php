@@ -10,6 +10,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
+        apiPrefix: 'ingest',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -19,11 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->remove(HandleCors::class);
 
         $middleware->redirectGuestsTo(
-            fn (Request $request) => $request->is('api/*') ? null : '/login',
+            fn (Request $request) => $request->is('ingest/*') ? null : '/login',
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('ingest/*'),
         );
     })->create();

@@ -23,7 +23,7 @@ class StreamTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $token = $this->postJson('/api/auth/login', [
+        $token = $this->postJson('/ingest/auth/login', [
             'email' => 'admin@analytics.local',
             'password' => 'password',
         ])->assertOk()->json('token');
@@ -36,7 +36,7 @@ class StreamTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $response = $this->get("/api/stream?token={$token}&site=reisinger.pictures");
+        $response = $this->get("/ingest/stream?token={$token}&site=reisinger.pictures");
 
         $response->assertStatus(200);
         $this->assertStringStartsWith('text/event-stream', (string) $response->headers->get('content-type'));

@@ -196,15 +196,15 @@ export interface RealtimeParams {
 }
 
 export function summaryUrl(params: SummaryParams): string {
-  return `/api/stats/summary${buildQuery(params)}`
+  return `/ingest/stats/summary${buildQuery(params)}`
 }
 
 export function eventsUrl(params: EventsParams): string {
-  return `/api/stats/events${buildQuery(params)}`
+  return `/ingest/stats/events${buildQuery(params)}`
 }
 
 export function realtimeUrl(params: RealtimeParams): string {
-  return `/api/stats/realtime${buildQuery(params)}`
+  return `/ingest/stats/realtime${buildQuery(params)}`
 }
 
 export function fetchSummary(params: SummaryParams): Promise<Summary> {
@@ -220,9 +220,9 @@ export function fetchRealtime(params: RealtimeParams): Promise<Realtime> {
 }
 
 export function fetchSites(): Promise<string[]> {
-  return fetchJson<string[]>('/api/stats/sites')
+  return fetchJson<string[]>('/ingest/stats/sites')
 }
 
 export function fetchSitesConfig(): Promise<SitesConfig> {
-  return fetchJson<SitesConfig>('/api/config/sites')
+  return fetchJson<SitesConfig>('/ingest/config/sites')
 }

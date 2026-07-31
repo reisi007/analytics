@@ -51,7 +51,7 @@ export function isAuthenticated(): boolean {
 }
 
 export async function login(email: string, password: string): Promise<void> {
-  const response = await fetch('/api/auth/login', {
+  const response = await fetch('/ingest/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -68,7 +68,7 @@ export async function logout(): Promise<void> {
   const token = getToken()
   if (token) {
     try {
-      await fetch('/api/auth/logout', {
+      await fetch('/ingest/auth/logout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })

@@ -23,7 +23,7 @@ class StatsTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        return $this->postJson('/api/auth/login', [
+        return $this->postJson('/ingest/auth/login', [
             'email' => 'admin@analytics.local',
             'password' => 'password',
         ])->assertOk()->json('token');
@@ -70,7 +70,7 @@ class StatsTest extends TestCase
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $this->getJson("/api/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", $this->authedHeaders($token))
+        $this->getJson("/ingest/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonPath('site', 'reisinger.pictures')
             ->assertJsonPath('totals.pageviews', 2)
@@ -89,7 +89,7 @@ class StatsTest extends TestCase
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $this->getJson("/api/stats/events?site=reisinger.pictures&name=click&from={$from}&to={$to}", $this->authedHeaders($token))
+        $this->getJson("/ingest/stats/events?site=reisinger.pictures&name=click&from={$from}&to={$to}", $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonPath('data.0.name', 'click')
             ->assertJsonPath('total', 1)
@@ -108,7 +108,7 @@ class StatsTest extends TestCase
         $token = $this->login();
         $this->seedData();
 
-        $this->getJson('/api/stats/realtime?site=reisinger.pictures&minutes=60', $this->authedHeaders($token))
+        $this->getJson('/ingest/stats/realtime?site=reisinger.pictures&minutes=60', $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonPath('window_minutes', 60)
             ->assertJsonPath('pageviews', 1)
@@ -139,7 +139,7 @@ class StatsTest extends TestCase
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $this->getJson("/api/stats/summary?from={$from}&to={$to}", $this->authedHeaders($token))
+        $this->getJson("/ingest/stats/summary?from={$from}&to={$to}", $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonPath('totals.pageviews', 2)
             ->assertJsonPath('totals.unique', 2)
@@ -168,7 +168,7 @@ class StatsTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $this->getJson('/api/stats/sites', $this->authedHeaders($token))
+        $this->getJson('/ingest/stats/sites', $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonCount(3)
             ->assertJsonFragment(['dev.reisinger.pictures'])
@@ -190,7 +190,7 @@ class StatsTest extends TestCase
 
         $from = now()->subDays(2)->format('Y-m-d');
         $to = now()->format('Y-m-d');
-        $url = "/api/stats/summary?site=reisinger.pictures&from={$from}&to={$to}";
+        $url = "/ingest/stats/summary?site=reisinger.pictures&from={$from}&to={$to}";
 
         $first = $this->getJson($url, $this->authedHeaders($token))
             ->assertOk()

@@ -13,23 +13,23 @@ Privates Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter T
   HTTP `Referer` des Track-Requests.
 - **Subdomains eigenständig:** Subdomains (z. B. `dev.reisinger.pictures`) sind eigene Sites mit eigenen Stats
   und Report-Mails. Nur `www.*` wird auf die Apex-Domain zusammengeführt.
-- **Realtime:** Live-Daten via SSE (`GET /api/stream`).
+- **Realtime:** Live-Daten via SSE (`GET /ingest/stream`).
 
 ## Architektur
 
 - **Backend:** Laravel 13, PHP 8.5, Postgres 18. Reine API ohne Laravel-UI. Läuft als Docker-Image
   `ghcr.io/reisi007/analytics` (php:8.5-fpm-alpine).
 - **Frontend:** React 19 + Vite 8 + TypeScript 7 + daisyUI 5. Wird **statisch** von Caddy aus
-  `/srv/websites/analytics/` ausgeliefert (Server-Mount `/home/webadmin/websites`), `/api/*` wird von Caddy an
+  `/srv/websites/analytics/` ausgeliefert (Server-Mount `/home/webadmin/websites`), `/ingest/*` wird von Caddy an
   `analytics_php:9000` durchgereicht. `tracker.js` entsteht als Teil des Frontend-Builds.
 - **CI/CD:** GitHub Actions baut, testet und releast (siehe Abschnitt CI/CD). **Watchtower** hält das
   Backend-Image automatisch aktuell; Frontend-Updates laufen über `./sync.sh`.
-- **Auth:** JWT (`tymon/jwt-auth`); `/api/stats/*` und `/api/stream` sind geschützt, `/api/track` bleibt öffentlich.
+- **Auth:** JWT (`tymon/jwt-auth`); `/ingest/stats/*` und `/ingest/stream` sind geschützt, `/ingest/track` bleibt öffentlich.
 
 ```
-Browser ── tracker.js ──► stats.*/api/track ──► Caddy ──► analytics_php:9000 (PHP-FPM)
+Browser ── tracker.js ──► stats.*/ingest/track ──► Caddy ──► analytics_php:9000 (PHP-FPM)
                                                         └────────► Postgres (analytics_db)
-Dashboard (SPA, statisch) ──► stats.*/api/stats/* ──► Caddy ──► analytics_php:9000
+Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ──► analytics_php:9000
 ```
 
 ## Struktur
@@ -66,7 +66,7 @@ docker compose -f docker-compose.local.yml up -d
 
 ### Backend (Laravel Herd)
 
-Das Backend läuft lokal via Herd unter `http://tracking.test` (nur `/api/*`, keine UI).
+Das Backend läuft lokal via Herd unter `http://tracking.test` (nur `/ingest/*`, keine UI).
 
 ```bash
 cd laravel
@@ -86,7 +86,7 @@ pnpm install
 pnpm dev
 ```
 
-Vite läuft auf `http://localhost:5173` und proxyt `/api` an `https://tracking.test`. Das Proxy-Ziel lässt sich per `VITE_API_PROXY`-Umgebungsvariable überschreiben und fällt sonst auf `https://tracking.test` zurück.
+Vite läuft auf `http://localhost:5173` und proxyt `/ingest` an `https://tracking.test`. Das Proxy-Ziel lässt sich per `VITE_API_PROXY`-Umgebungsvariable überschreiben und fällt sonst auf `https://tracking.test` zurück.
 
 ### Sites seeden
 
@@ -196,7 +196,7 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
 
 ## Sites verwalten
 
-Welche Domains Analytics aufzeichnen darf, steht in der DB-Tabelle `sites` (CORS-Whitelist). `/api/track`
+Welche Domains Analytics aufzeichnen darf, steht in der DB-Tabelle `sites` (CORS-Whitelist). `/ingest/track`
 akzeptiert nur Referrer-Origins, deren Host dort eingetragen ist (sonst 403).
 
 ```bash
