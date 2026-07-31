@@ -1,10 +1,3 @@
-# Variante B: Files-Upload-Deploy ohne eigenes Image.
-# Nutzt das gemeinsame Basis-Image ghcr.io/reisi007/php-postgres:8.5 (PHP-FPM + pdo_pgsql).
-# Die Laravel-Dateien liegen auf dem Server unter /home/webadmin/websites/api-analytics.reisinger.pictures
-# (Ziel von ./sync.sh, hartkodiert wie bei form.reisinger.pictures) und werden nach /var/www/html gemountet.
-# composer_init installiert vendor/ einmalig in das gemountete Verzeichnis. Keine Caddyfile-Änderung nötig
-# (analytics_php:9000, SCRIPT_FILENAME /var/www/html/public/index.php).
-
 services:
   analytics_db:
     image: postgres:18-alpine
@@ -34,7 +27,9 @@ services:
     restart: "no"
     volumes:
       - /home/webadmin/websites/api-analytics.reisinger.pictures:/app
-    command: install --no-dev --ignore-platform-reqs --no-interaction --optimize-autoloader
+    command: >
+      sh -c "mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs &&
+      composer install --no-dev --ignore-platform-reqs --no-interaction --optimize-autoloader"
     networks:
       - analytics_internal
 
@@ -89,9 +84,10 @@ services:
       php artisan config:cache;
       php artisan route:cache;
       php artisan optimize;
+      (while true; do php artisan schedule:run >> /dev/null 2>&1; sleep 60; done) &
       exec php-fpm"
     healthcheck:
-      test: ["CMD-SHELL", "pgrep php-fpm || exit 1"]
+      test: ["CMD", "php", "-r", "$$e=0;$$s='';exit(@fsockopen('127.0.0.1',9000,$$e,$$s,2)?0:1);"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -101,161 +97,9 @@ services:
       options:
         max-size: 10m
     networks:
-      - analytics_internal
-      - webnet
-
-  analytics_worker:
-    image: ghcr.io/reisi007/php-postgres:8.5
-    container_name: analytics_worker
-    restart: unless-stopped
-    working_dir: /var/www/html
-    depends_on:
-      analytics_db:
-        condition: service_healthy
-      composer_init:
-        condition: service_completed_successfully
-    volumes:
-      - /home/webadmin/websites/api-analytics.reisinger.pictures:/var/www/html
-    environment:
-      APP_ENV: ${APP_ENV}
-      APP_DEBUG: ${APP_DEBUG}
-      APP_URL: ${APP_URL}
-      APP_KEY: ${APP_KEY}
-      JWT_SECRET: ${JWT_SECRET}
-      DB_CONNECTION: pgsql
-      DB_HOST: analytics_db
-      DB_PORT: 5432
-      DB_DATABASE: analytics
-      DB_USERNAME: analytics
-      DB_PASSWORD: ${DB_PASSWORD}
-      QUEUE_CONNECTION: database
-      MAIL_MAILER: ${MAIL_MAILER}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
-      REPORT_EMAIL: ${REPORT_EMAIL}
-      STREAM_POLL_SECONDS: ${STREAM_POLL_SECONDS:-2}
-      ANALYTICS_TIMEZONE: ${ANALYTICS_TIMEZONE:-Europe/Berlin}
-      LOG_CHANNEL: stderr
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      OAUTH_REFRESH_TOKEN: ${OAUTH_REFRESH_TOKEN}
-      MAKE_WEBHOOK_URL: ${MAKE_WEBHOOK_URL:-}
-      MAKE_API_KEY: ${MAKE_API_KEY:-}
-    command: php artisan queue:work --sleep=3 --tries=3
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-    networks:
-      - analytics_internal
-
-  analytics_scheduler:
-    image: ghcr.io/reisi007/php-postgres:8.5
-    container_name: analytics_scheduler
-    restart: unless-stopped
-    working_dir: /var/www/html
-    depends_on:
-      analytics_db:
-        condition: service_healthy
-      composer_init:
-        condition: service_completed_successfully
-    volumes:
-      - /home/webadmin/websites/api-analytics.reisinger.pictures:/var/www/html
-    environment:
-      APP_ENV: ${APP_ENV}
-      APP_DEBUG: ${APP_DEBUG}
-      APP_URL: ${APP_URL}
-      APP_KEY: ${APP_KEY}
-      JWT_SECRET: ${JWT_SECRET}
-      DB_CONNECTION: pgsql
-      DB_HOST: analytics_db
-      DB_PORT: 5432
-      DB_DATABASE: analytics
-      DB_USERNAME: analytics
-      DB_PASSWORD: ${DB_PASSWORD}
-      QUEUE_CONNECTION: database
-      MAIL_MAILER: ${MAIL_MAILER}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
-      REPORT_EMAIL: ${REPORT_EMAIL}
-      STREAM_POLL_SECONDS: ${STREAM_POLL_SECONDS:-2}
-      ANALYTICS_TIMEZONE: ${ANALYTICS_TIMEZONE:-Europe/Berlin}
-      LOG_CHANNEL: stderr
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      OAUTH_REFRESH_TOKEN: ${OAUTH_REFRESH_TOKEN}
-      MAKE_WEBHOOK_URL: ${MAKE_WEBHOOK_URL:-}
-      MAKE_API_KEY: ${MAKE_API_KEY:-}
-    command: php artisan schedule:work
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-    networks:
-      - analytics_internal
-
-  analytics_token_checker:
-    image: ghcr.io/reisi007/php-postgres:8.5
-    container_name: analytics_token_checker
-    restart: unless-stopped
-    environment:
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      OAUTH_REFRESH_TOKEN: ${OAUTH_REFRESH_TOKEN}
-      MAKE_WEBHOOK_URL: ${MAKE_WEBHOOK_URL}
-      MAKE_API_KEY: ${MAKE_API_KEY}
-      CHECK_INTERVAL: ${CHECK_INTERVAL:-86400}
-    command: >
-      sh -c '
-      php -r "
-        while (true) {
-          echo \"[\" . date(\"Y-m-d H:i:s\") . \"] Initiating OAuth2 token check...\n\";
-
-          \$$ctx = stream_context_create([\"http\" => [
-            \"method\"  => \"POST\",
-            \"header\"  => \"Content-Type: application/x-www-form-urlencoded\",
-            \"content\" => http_build_query([
-              \"client_id\"     => getenv(\"OAUTH_CLIENT_ID\"),
-              \"client_secret\" => getenv(\"OAUTH_CLIENT_SECRET\"),
-              \"refresh_token\" => getenv(\"OAUTH_REFRESH_TOKEN\"),
-              \"grant_type\"    => \"refresh_token\",
-            ]),
-          ]]);
-
-          \$$res = @file_get_contents(\"https://oauth2.googleapis.com/token\", false, \$$ctx);
-
-          if (\$$res === false || str_contains(\$$res, \"\\\"error\\\"\")) {
-            echo \"[\" . date(\"Y-m-d H:i:s\") . \"] ERROR: Token renewal failed! Sending webhook...\n\";
-
-            \$$wctx = stream_context_create([\"http\" => [
-              \"method\"  => \"POST\",
-              \"header\"  => \"Content-Type: application/json\r\nx-make-apikey: \" . getenv(\"MAKE_API_KEY\"),
-              \"content\" => json_encode([
-                \"error\"             => \"Automated Checker: OAuth2 Refresh Token for analytics (stats.reisinger.pictures) has expired or is invalid!\",
-                \"formatted_message\" => \"System Alert - Check Portainer Logs.\",
-              ]),
-            ]]);
-
-            @file_get_contents(getenv(\"MAKE_WEBHOOK_URL\"), false, \$$wctx);
-          } else {
-            echo \"[\" . date(\"Y-m-d H:i:s\") . \"] SUCCESS: Token is valid.\n\";
-          }
-
-          \$$next = date(\"Y-m-d H:i:s\", time() + (int) getenv(\"CHECK_INTERVAL\"));
-          echo \"[\" . date(\"Y-m-d H:i:s\") . \"] Next check: \$$next\n\";
-
-          sleep((int) getenv(\"CHECK_INTERVAL\"));
-        }
-      "
-      '
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-    networks:
-      - analytics_internal
+      analytics_internal: {}
+      webnet:
+        ipv4_address: 172.18.0.40
 
 volumes:
   pgdata:
