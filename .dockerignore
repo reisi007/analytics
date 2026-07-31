@@ -1,0 +1,11 @@
+**/vendor
+laravel/.env*
+laravel/tests
+laravel/storage/logs/*
+laravel/node_modules
+dashboard/node_modules
+e2e/node_modules
+dashboard/dist
+.git
+Agents.md
+Agents.todo.md

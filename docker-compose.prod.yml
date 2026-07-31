@@ -1,0 +1,161 @@
+services:
+  analytics_db:
+    image: postgres:18-alpine
+    container_name: analytics_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - analytics_internal
+
+  analytics_php:
+    image: ghcr.io/reisi007/analytics/laravel:latest
+    container_name: analytics_php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    depends_on:
+      analytics_db:
+        condition: service_healthy
+    volumes:
+      - storage:/var/www/html/storage
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_URL: ${APP_URL}
+      APP_KEY: ${APP_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      DB_CONNECTION: pgsql
+      DB_HOST: analytics_db
+      DB_PORT: 5432
+      DB_DATABASE: analytics
+      DB_USERNAME: analytics
+      DB_PASSWORD: ${DB_PASSWORD}
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: ${MAIL_MAILER}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      REPORT_EMAIL: ${REPORT_EMAIL}
+      STREAM_POLL_INTERVAL: ${STREAM_POLL_INTERVAL:-2}
+      LOG_CHANNEL: stderr
+    command: >
+      sh -c "if [ \"$$APP_ENV\" = \"production\" ]; then
+      if [ -z \"$$APP_KEY\" ] || [ -z \"$$JWT_SECRET\" ]; then
+      echo 'FATAL: APP_KEY/JWT_SECRET fehlt'; exit 1; fi; fi;
+      php artisan migrate --force;
+      php artisan config:cache;
+      php artisan route:cache;
+      php artisan optimize;
+      exec php-fpm"
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep php-fpm || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - analytics_internal
+      - webnet
+
+  analytics_worker:
+    image: ghcr.io/reisi007/analytics/laravel:latest
+    container_name: analytics_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    depends_on:
+      analytics_db:
+        condition: service_healthy
+    volumes:
+      - storage:/var/www/html/storage
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_URL: ${APP_URL}
+      APP_KEY: ${APP_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      DB_CONNECTION: pgsql
+      DB_HOST: analytics_db
+      DB_PORT: 5432
+      DB_DATABASE: analytics
+      DB_USERNAME: analytics
+      DB_PASSWORD: ${DB_PASSWORD}
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: ${MAIL_MAILER}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      REPORT_EMAIL: ${REPORT_EMAIL}
+      STREAM_POLL_INTERVAL: ${STREAM_POLL_INTERVAL:-2}
+      LOG_CHANNEL: stderr
+    command: php artisan queue:work --sleep=3 --tries=3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - analytics_internal
+
+  analytics_scheduler:
+    image: ghcr.io/reisi007/analytics/laravel:latest
+    container_name: analytics_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    depends_on:
+      analytics_db:
+        condition: service_healthy
+    volumes:
+      - storage:/var/www/html/storage
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_URL: ${APP_URL}
+      APP_KEY: ${APP_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      DB_CONNECTION: pgsql
+      DB_HOST: analytics_db
+      DB_PORT: 5432
+      DB_DATABASE: analytics
+      DB_USERNAME: analytics
+      DB_PASSWORD: ${DB_PASSWORD}
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: ${MAIL_MAILER}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      REPORT_EMAIL: ${REPORT_EMAIL}
+      STREAM_POLL_INTERVAL: ${STREAM_POLL_INTERVAL:-2}
+      LOG_CHANNEL: stderr
+    command: php artisan schedule:work
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - analytics_internal
+
+volumes:
+  pgdata:
+  storage:
+
+networks:
+  analytics_internal:
+    internal: true
+  webnet:
+    external: true
