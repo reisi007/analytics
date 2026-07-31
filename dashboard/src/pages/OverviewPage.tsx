@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { SeriesChart } from '../components/SeriesChart'
 import { StatCard } from '../components/StatCard'
 import { useSite } from '../context/SiteContext'
@@ -29,7 +30,7 @@ export function OverviewPage() {
   const { site } = useSite()
   const [range, setRange] = useState(30)
   const [summary, setSummary] = useState<Summary | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -41,7 +42,7 @@ export function OverviewPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
+          setError(err)
           setSummary(null)
         }
       })
@@ -70,7 +71,7 @@ export function OverviewPage() {
         </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error != null && <ApiErrorAlert error={error} />}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard title="Seitenaufrufe" value={totals?.pageviews ?? 0} />

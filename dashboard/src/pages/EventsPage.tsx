@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { useSite } from '../context/SiteContext'
 import { fetchEvents, type EventRow, type Paginator } from '../lib/api'
 
@@ -12,7 +13,7 @@ export function EventsPage() {
   const [name, setName] = useState('')
   const [page, setPage] = useState(1)
   const [result, setResult] = useState<Paginator<EventRow> | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -23,7 +24,7 @@ export function EventsPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
+          setError(err)
           setResult(null)
         }
       })
@@ -54,7 +55,7 @@ export function EventsPage() {
         />
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error != null && <ApiErrorAlert error={error} />}
 
       <div className="card bg-base-100 shadow-sm">
         <div className="card-body">

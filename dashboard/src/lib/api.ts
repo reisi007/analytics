@@ -86,21 +86,34 @@ export interface Realtime {
   recent: RecentActivity[]
 }
 
+export interface ApiErrorDetails {
+  message: string
+  exception?: string
+  file?: string
+  line?: number
+  trace?: unknown[]
+}
+
 export class ApiError extends Error {
   readonly status: number
+  readonly details: ApiErrorDetails | null
 
-  constructor(message: string, status: number) {
-    super(message)
+  constructor(status: number, details: ApiErrorDetails | null) {
+    super(details?.message ?? `Request fehlgeschlagen: ${status}`)
     this.name = 'ApiError'
     this.status = status
+    this.details = details
   }
 }
 
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const token = getToken()
-  const response = token
-    ? await fetch(url, { ...init, headers: new Headers({ ...headersFrom(init), Authorization: `Bearer ${token}` }) })
-    : await fetch(url, init)
+  const headers = new Headers(headersFrom(init))
+  headers.set('Accept', 'application/json')
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+
+  const response = await fetch(url, { ...init, headers })
+
   if (response.status === 401) {
     clearToken()
     clearUser()
@@ -108,10 +121,37 @@ export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> 
       window.location.assign('/login')
     }
   }
+
   if (!response.ok) {
-    throw new ApiError(`Request fehlgeschlagen: ${response.status} ${response.statusText}`, response.status)
+    throw await toApiError(response)
   }
+
   return (await response.json()) as T
+}
+
+async function toApiError(response: Response): Promise<ApiError> {
+  let details: ApiErrorDetails | null = null
+  if (typeof response.text === 'function') {
+    try {
+      const body: unknown = JSON.parse(await response.text())
+      if (isRecord(body) && typeof body.message === 'string') {
+        details = {
+          message: body.message,
+          exception: typeof body.exception === 'string' ? body.exception : undefined,
+          file: typeof body.file === 'string' ? body.file : undefined,
+          line: typeof body.line === 'number' ? body.line : undefined,
+          trace: Array.isArray(body.trace) ? body.trace : undefined,
+        }
+      }
+    } catch {
+      // body was not JSON — fall back to the generic message
+    }
+  }
+  return new ApiError(response.status, details)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 function headersFrom(init?: RequestInit): Record<string, string> {
