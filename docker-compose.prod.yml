@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: analytics
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U analytics -d analytics"]
       interval: 10s

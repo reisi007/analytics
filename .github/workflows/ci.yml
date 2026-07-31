@@ -148,6 +148,9 @@ jobs:
         working-directory: dashboard
         run: pnpm build
 
+      - name: Pull E2E image
+        run: docker pull ghcr.io/reisi007/analytics/laravel:test
+
       - name: Start E2E stack
         env:
           IMAGE_TAG: test

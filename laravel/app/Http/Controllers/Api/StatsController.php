@@ -54,7 +54,7 @@ class StatsController extends Controller
 
         $key = 'stats.events.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d').'.'.($name ?? 'all').'.'.$page;
 
-        return response()->json(Cache::remember($key, 60, fn () => $aggregator->events($site, $from, $to, $name, 20, $page)));
+        return response()->json(Cache::remember($key, 60, fn () => $aggregator->events($site, $from, $to, $name, 20, $page)->toArray()));
     }
 
     public function realtime(Request $request, StatsAggregator $aggregator): JsonResponse

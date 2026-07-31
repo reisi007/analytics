@@ -6,7 +6,6 @@ use App\Models\Event;
 use App\Models\PageView;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 class StatsAggregator
 {
@@ -59,7 +58,7 @@ class StatsAggregator
         ];
     }
 
-    private function series(?string $site, Carbon $from, Carbon $to): Collection
+    private function series(?string $site, Carbon $from, Carbon $to): array
     {
         $rows = PageView::query()
             ->when($site, fn ($q) => $q->where('site', $site))
@@ -89,10 +88,10 @@ class StatsAggregator
             ]);
         }
 
-        return $series;
+        return $series->all();
     }
 
-    private function topPages($query, int $limit): Collection
+    private function topPages($query, int $limit): array
     {
         return (clone $query)
             ->selectRaw('url, COUNT(*) as pageviews')
@@ -100,10 +99,11 @@ class StatsAggregator
             ->orderByDesc('pageviews')
             ->limit($limit)
             ->get()
-            ->map(fn ($row) => ['url' => $row->url, 'pageviews' => (int) $row->pageviews]);
+            ->map(fn ($row) => ['url' => $row->url, 'pageviews' => (int) $row->pageviews])
+            ->all();
     }
 
-    private function topReferrers($query, int $limit): Collection
+    private function topReferrers($query, int $limit): array
     {
         return (clone $query)
             ->whereNotNull('referrer')
@@ -113,10 +113,11 @@ class StatsAggregator
             ->orderByDesc('pageviews')
             ->limit($limit)
             ->get()
-            ->map(fn ($row) => ['referrer' => $row->referrer, 'pageviews' => (int) $row->pageviews]);
+            ->map(fn ($row) => ['referrer' => $row->referrer, 'pageviews' => (int) $row->pageviews])
+            ->all();
     }
 
-    private function topEvents($query, int $limit): Collection
+    private function topEvents($query, int $limit): array
     {
         return (clone $query)
             ->selectRaw('name, COUNT(*) as events')
@@ -124,10 +125,11 @@ class StatsAggregator
             ->orderByDesc('events')
             ->limit($limit)
             ->get()
-            ->map(fn ($row) => ['name' => $row->name, 'events' => (int) $row->events]);
+            ->map(fn ($row) => ['name' => $row->name, 'events' => (int) $row->events])
+            ->all();
     }
 
-    private function recentActivity(?string $site, Carbon $since): Collection
+    private function recentActivity(?string $site, Carbon $since): array
     {
         $pageviews = PageView::query()
             ->when($site, fn ($q) => $q->where('site', $site))
@@ -155,6 +157,6 @@ class StatsAggregator
                 'time' => $e->created_at?->toIso8601String(),
             ]);
 
-        return $pageviews->concat($events)->sortByDesc('time')->values();
+        return $pageviews->concat($events)->sortByDesc('time')->values()->all();
     }
 }

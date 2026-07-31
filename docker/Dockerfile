@@ -13,7 +13,8 @@ COPY laravel/ .
 
 RUN { echo 'opcache.enable=1'; echo 'opcache.memory_consumption=128'; echo 'opcache.interned_strings_buffer=16'; echo 'opcache.max_accelerated_files=20000'; echo 'opcache.validate_timestamps=0'; echo 'opcache.enable_cli=0'; } > /usr/local/etc/php/conf.d/opcache.ini
 
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 9000
 

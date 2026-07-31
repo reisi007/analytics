@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics Track-Test</title>
+  </head>
+  <body>
+    <h1>Track-Test-Seite</h1>
+    <p>
+      URL: <code id="page-url"></code>
+    </p>
+    <button type="button" id="track-event">Track Event</button>
+
+    <script src="/tracker.js" onload="window.__trackerLoaded = true" defer></script>
+    <script>
+      document.getElementById('page-url').textContent = window.location.href
+      document.getElementById('track-event').addEventListener('click', () => {
+        window.trackEvent && window.trackEvent('demo-click', { page: 'track-test' })
+      })
+    </script>
+  </body>
+</html>
