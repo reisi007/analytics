@@ -179,6 +179,10 @@ jobs:
             -e ANALYTICS_ADMIN_PASSWORD="$ANALYTICS_ADMIN_PASSWORD" \
             php php artisan migrate --seed --force
 
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: pnpm install --frozen-lockfile
+
       - name: Install Playwright
         run: npx playwright install --with-deps
 
