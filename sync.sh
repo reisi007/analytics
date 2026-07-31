@@ -2,15 +2,14 @@
 set -euo pipefail
 
 REMOTE="reisinger.pictures:/analytics"
-RELEASE_URL="https://github.com/reisi007/analytics/releases/latest/download/dashboard-release.zip"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 echo "Lade neuestes Release herunter..."
-curl -fL -o "$TMP/dashboard-release.zip" "$RELEASE_URL"
-VERSION="$(curl -sIL "$RELEASE_URL" | grep -i '^location:' | sed -E 's#.*/download/(v[^/]+)/.*#\1#' | tr -d '\r' | tail -1)"
+VERSION="$(gh release view --repo reisi007/analytics --json tagName --jq .tagName)"
 echo "Release: ${VERSION:-unbekannt}"
+gh release download --repo reisi007/analytics --pattern dashboard-release.zip --dir "$TMP" --clobber
 
 unzip -q "$TMP/dashboard-release.zip" -d "$TMP/release"
 
