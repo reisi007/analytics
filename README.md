@@ -23,7 +23,8 @@ Privates Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter T
   `/srv/websites/analytics/` ausgeliefert (Server-Mount `/home/webadmin/websites`), `/ingest/*` wird von Caddy an
   `analytics_php:9000` durchgereicht. `tracker.js` entsteht als Teil des Frontend-Builds.
 - **CI/CD:** GitHub Actions baut, testet und releast (siehe Abschnitt CI/CD). **Watchtower** hält das
-  Backend-Image automatisch aktuell; Frontend-Updates laufen über `./sync.sh`.
+  Backend-Image automatisch aktuell (Variante A); Backend- und Frontend-Updates laufen über `./sync.sh`
+  (Variante B).
 - **Auth:** JWT (`tymon/jwt-auth`); `/ingest/stats/*` und `/ingest/stream` sind geschützt, `/ingest/track` bleibt öffentlich.
 
 ```
@@ -44,10 +45,12 @@ Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ─�
 ├── docker-compose.local.yml  # Lokale Infra: Postgres :5433, Mailpit :1027/:8027
 ├── docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit :1028/:8028, Web :8081
 ├── deployment/
-│   └── docker-compose.prod.yml  # Portainer-Stack für Produktion (webnet)
+│   ├── docker-compose.prod.yml        # Variante A: Portainer-Stack mit Image (öffentlich)
+│   └── docker-compose.prod.files.yml  # Variante B: Files-Upload-Deploy ohne eigenes Image
 ├── Caddyfile.e2e             # Caddy-Konfiguration für den E2E-Stack
 ├── .github/workflows/ci.yml  # CI/CD-Pipeline
-├── sync.sh                   # Frontend-Deployment via rclone auf den Produktionsserver
+├── sync.sh                   # Backend+Frontend-Deployment via rclone (portal-Modell)
+├── rclone-backend-filter.txt # Filter für den Backend-Sync (kein vendor/.env/tests)
 └── .git-cliff.toml           # Changelog-Konfiguration
 ```
 
@@ -182,9 +185,10 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
 
 3. **Caddyfile aktivieren:** Im caddyfile-Repo den Block für `stats.reisinger.pictures, stats.all-the.rest`
    prüfen (FastCGI-Proxy auf `analytics_php:9000`, `flush_interval -1` für SSE) und per `./sync.sh` deployen.
-4. **Frontend aktualisieren:** Lokal `./sync.sh` ausführen — lädt das neueste `dashboard-release.zip` herunter
-   und rclone-synct das statische Frontend (Dashboard + `tracker.js`) per SFTP nach
-   `/home/webadmin/websites/analytics` (auf dem Server erreichbar unter `/srv/websites/analytics`).
+4. **Backend & Frontend aktualisieren:** Lokal `./sync.sh` ausführen — rclone-synct das Backend (`laravel/`,
+   ohne `vendor/`, `.env`, Tests und Storage-Caches) nach `/home/webadmin/websites/api-analytics.reisinger.pictures`
+   und das Frontend (`tracker.js` + `dashboard/`) nach `/home/webadmin/websites/analytics` (auf dem Server
+   erreichbar unter `/srv/websites/…`). `vendor/` erzeugt der `composer_init`-Service beim Stack-Start.
 5. **Watchtower (optional):** Ein Watchtower-Container hält das Backend-Image automatisch aktuell, z. B.:
 
    ```
@@ -193,7 +197,32 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
      ghcr.io/containrrr/watchtower --interval 86400 --cleanup
    ```
 
-   Watchtower aktualisiert nur das Image — Dashboard-Updates bleiben bei `./sync.sh`.
+   Watchtower aktualisiert nur das Image (Variante A) — Backend- und Frontend-Updates bleiben bei `./sync.sh`.
+
+### Variante B: Files-Upload-Deploy (ohne eigenes Image)
+
+Wer kein eigenes Backend-Image bauen/releasen möchte (Variante A), nutzt das gemeinsame Basis-Image
+`ghcr.io/reisi007/php-postgres:8.5` (PHP-FPM + `pdo_pgsql`) und legt die Laravel-Dateien direkt auf dem Server ab.
+Ein Dockerfile wird nur für Variante A benötigt — hier nicht.
+
+1. **Backend & Frontend hochladen:** Lokal `./sync.sh` ausführen — rclone-synct das Backend (`laravel/`, ohne
+   `vendor/`, `.env`, Tests und Storage-Caches) nach `/home/webadmin/websites/api-analytics.reisinger.pictures`
+   und das Frontend (`tracker.js` + `dashboard/`) nach `/home/webadmin/websites/analytics`. `.env` wird bewusst
+   nicht hochgeladen — alle Secrets kommen über die Stack-ENV-Variablen (siehe unten); `vendor/` erzeugt der
+   `composer_init`-Service beim Stack-Start.
+2. **Stack starten:** `deployment/docker-compose.prod.files.yml` als Portainer-Stack anlegen (oder
+   `docker compose -f deployment/docker-compose.prod.files.yml up -d`). Der einmalige Service `composer_init`
+   führt `composer install` im gemounteten Verzeichnis aus; erst danach startet `analytics_php`, wendet beim
+   Start Migrationen/Seeds/Caches an und startet PHP-FPM. Der Bind-Mount-Pfad
+   `/home/webadmin/websites/api-analytics.reisinger.pictures` ist fest im Compose-File verdrahtet (wie bei
+   `form.reisinger.pictures`).
+3. **ENV-Variablen:** identisch zu Variante A (Tabelle oben). Ohne `APP_KEY`/`JWT_SECRET` verweigert der
+   Gatekeeper den Start im `production`-Modus.
+4. **Caddyfile:** keine Änderung nötig — der Block für `stats.reisinger.pictures, stats.all-the.rest` proxyed
+   weiterhin an `analytics_php:9000` (`SCRIPT_FILENAME /var/www/html/public/index.php`).
+5. **Update:** erneut `./sync.sh` ausführen und `analytics_php` neu starten (Migrationen laufen beim Start
+   erneut). Bei neuen Composer-Abhängigkeiten `composer_init` einmalig re-starten
+   (`docker compose -f deployment/docker-compose.prod.files.yml up composer_init`).
 
 ## Sites verwalten
 
