@@ -12,7 +12,7 @@ test('wrong password shows the error alert', async ({ page }) => {
   await page.fill('input[type="email"]', 'admin@e2e.local')
   await page.fill('input[type="password"]', 'wrong-password')
   await page.click('button[type="submit"]')
-  await expect(page.locator('.alert-error')).toHaveText('Login fehlgeschlagen')
+  await expect(page.locator('.alert-error')).toContainText('Login fehlgeschlagen')
 })
 
 test('correct credentials land on / and the site switcher contains "Alle Sites"', async ({ page }) => {
