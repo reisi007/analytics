@@ -7,9 +7,9 @@ use App\Models\Event;
 use App\Models\PageView;
 use App\Models\Site;
 use App\Services\StatsAggregator;
+use App\Support\ReportTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class StatsController extends Controller
@@ -20,16 +20,16 @@ class StatsController extends Controller
         $site = $request->input('site') ?: null;
 
         $from = $request->filled('from')
-            ? Carbon::parse($request->query('from'))
-            : Carbon::today()->subDays(29);
+            ? ReportTime::parse((string) $request->query('from'))
+            : ReportTime::today()->subDays(29);
         $to = $request->filled('to')
-            ? Carbon::parse($request->query('to'))
-            : Carbon::today();
+            ? ReportTime::parse((string) $request->query('to'))
+            : ReportTime::today();
 
         $from = $from->startOfDay();
         $to = $to->endOfDay();
 
-        $key = 'stats.summary.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d');
+        $key = 'stats.summary.'.ReportTime::timezone().'.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d');
 
         return response()->json(Cache::remember($key, 300, fn () => $aggregator->summary($site, $from, $to)));
     }
@@ -40,11 +40,11 @@ class StatsController extends Controller
         $site = $request->input('site') ?: null;
 
         $from = $request->filled('from')
-            ? Carbon::parse($request->query('from'))
-            : Carbon::today()->subDays(29);
+            ? ReportTime::parse((string) $request->query('from'))
+            : ReportTime::today()->subDays(29);
         $to = $request->filled('to')
-            ? Carbon::parse($request->query('to'))
-            : Carbon::today();
+            ? ReportTime::parse((string) $request->query('to'))
+            : ReportTime::today();
 
         $name = $request->filled('name') ? (string) $request->query('name') : null;
         $page = max(1, (int) $request->query('page', 1));
@@ -52,7 +52,7 @@ class StatsController extends Controller
         $from = $from->startOfDay();
         $to = $to->endOfDay();
 
-        $key = 'stats.events.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d').'.'.($name ?? 'all').'.'.$page;
+        $key = 'stats.events.'.ReportTime::timezone().'.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d').'.'.($name ?? 'all').'.'.$page;
 
         return response()->json(Cache::remember($key, 60, fn () => $aggregator->events($site, $from, $to, $name, 20, $page)->toArray()));
     }

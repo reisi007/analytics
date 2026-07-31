@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\PageView;
 use App\Models\Site;
 use App\Services\StatsAggregator;
+use App\Support\ReportTime;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
@@ -18,8 +19,8 @@ class GenerateWeeklyReport extends Command
 
     public function handle(StatsAggregator $aggregator): int
     {
-        $from = now()->startOfWeek()->subWeek();
-        $to = now()->startOfWeek();
+        $from = ReportTime::now()->startOfWeek()->subWeek();
+        $to = ReportTime::now()->startOfWeek();
         $recipient = config('analytics.report.email');
 
         if ($recipient === null || $recipient === '') {

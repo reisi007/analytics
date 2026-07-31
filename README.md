@@ -162,8 +162,9 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
    | `MAKE_WEBHOOK_URL` | Make.com-Webhook für Mail-/Token-Fehler-Alerts |
    | `MAKE_API_KEY` | Make.com-API-Key für den Webhook |
    | `CHECK_INTERVAL` | Sekunden zwischen Token-Checks (Default `86400`) |
-   | `ANALYTICS_ADMIN_EMAIL` | Admin-Login (JWT) |
-   | `ANALYTICS_ADMIN_PASSWORD` | Admin-Passwort |
+    | `ANALYTICS_ADMIN_EMAIL` | Admin-Login (JWT) |
+    | `ANALYTICS_ADMIN_PASSWORD` | Admin-Passwort |
+    | `ANALYTICS_TIMEZONE` | Report-Zeitzone für Tages-Aggregation/Wochenbericht (z. B. `Europe/Berlin`) |
 
    Beim Start führt der Stack `php artisan migrate --force` **und** `php artisan db:seed --force` aus:
    Migrationen werden automatisch angewendet, und die idempotenten Seeder legen den Admin-User (aus

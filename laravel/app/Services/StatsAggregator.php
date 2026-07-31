@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\PageView;
+use App\Support\ReportTime;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
@@ -11,8 +12,9 @@ class StatsAggregator
 {
     public function summary(?string $site, Carbon $from, Carbon $to): array
     {
-        $pageviews = PageView::query()->when($site, fn ($q) => $q->where('site', $site))->whereBetween('created_at', [$from, $to]);
-        $events = Event::query()->when($site, fn ($q) => $q->where('site', $site))->whereBetween('created_at', [$from, $to]);
+        [$queryFrom, $queryTo] = [$from->copy()->utc(), $to->copy()->utc()];
+        $pageviews = PageView::query()->when($site, fn ($q) => $q->where('site', $site))->whereBetween('created_at', [$queryFrom, $queryTo]);
+        $events = Event::query()->when($site, fn ($q) => $q->where('site', $site))->whereBetween('created_at', [$queryFrom, $queryTo]);
 
         $totals = [
             'pageviews' => (clone $pageviews)->count(),
@@ -34,9 +36,11 @@ class StatsAggregator
 
     public function events(?string $site, Carbon $from, Carbon $to, ?string $name = null, int $perPage = 20, int $page = 1): LengthAwarePaginator
     {
+        [$queryFrom, $queryTo] = [$from->copy()->utc(), $to->copy()->utc()];
+
         return Event::query()
             ->when($site, fn ($q) => $q->where('site', $site))
-            ->whereBetween('created_at', [$from, $to])
+            ->whereBetween('created_at', [$queryFrom, $queryTo])
             ->when($name, fn ($q) => $q->where('name', $name))
             ->latest('id')
             ->paginate($perPage, ['*'], 'page', $page);
@@ -60,21 +64,24 @@ class StatsAggregator
 
     private function series(?string $site, Carbon $from, Carbon $to): array
     {
-        $rows = PageView::query()
+        $tz = ReportTime::timezone();
+
+        $pageviews = PageView::query()
             ->when($site, fn ($q) => $q->where('site', $site))
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as pageviews, COUNT(DISTINCT session_hash) as unique_visitors')
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
+            ->whereBetween('created_at', [$from->copy()->utc(), $to->copy()->utc()])
+            ->get(['created_at', 'session_hash'])
+            ->groupBy(fn (PageView $pv) => $pv->created_at->setTimezone($tz)->toDateString())
+            ->map(fn ($group) => [
+                'pageviews' => $group->count(),
+                'unique_visitors' => $group->pluck('session_hash')->unique()->count(),
+            ]);
 
         $events = Event::query()
             ->when($site, fn ($q) => $q->where('site', $site))
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
+            ->whereBetween('created_at', [$from->copy()->utc(), $to->copy()->utc()])
+            ->get(['created_at'])
+            ->groupBy(fn (Event $event) => $event->created_at->setTimezone($tz)->toDateString())
+            ->map(fn ($group) => ['count' => $group->count()]);
 
         $series = collect();
 
@@ -82,9 +89,9 @@ class StatsAggregator
             $key = $day->format('Y-m-d');
             $series->push([
                 'date' => $key,
-                'pageviews' => (int) ($rows[$key]->pageviews ?? 0),
-                'unique' => (int) ($rows[$key]->unique_visitors ?? 0),
-                'events' => (int) ($events[$key]->count ?? 0),
+                'pageviews' => (int) ($pageviews[$key]['pageviews'] ?? 0),
+                'unique' => (int) ($pageviews[$key]['unique_visitors'] ?? 0),
+                'events' => (int) ($events[$key]['count'] ?? 0),
             ]);
         }
 

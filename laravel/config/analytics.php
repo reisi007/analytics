@@ -24,4 +24,12 @@ return [
         'email' => env('REPORT_EMAIL', env('MAIL_FROM_ADDRESS')),
         'schedule' => env('REPORT_SCHEDULE', 'monday 09:00'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Report timezone (day boundaries for aggregation & reports)
+    |--------------------------------------------------------------------------
+    */
+
+    'timezone' => env('ANALYTICS_TIMEZONE', 'Europe/Berlin'),
 ];

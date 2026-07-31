@@ -41,6 +41,7 @@ services:
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
+      ANALYTICS_TIMEZONE: ${ANALYTICS_TIMEZONE:-Europe/Berlin}
 
   mailpit:
     image: axllent/mailpit
