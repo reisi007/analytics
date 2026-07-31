@@ -1,4 +1,4 @@
-import { Navigate, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router'
 import { SiteProvider, useSite } from './context/SiteContext'
 import { getUser, isAuthenticated, logout } from './lib/auth'
 import { EventsPage } from './pages/EventsPage'
