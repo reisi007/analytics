@@ -43,7 +43,8 @@ Dashboard (SPA, statisch) ──► stats.*/api/stats/* ──► Caddy ──�
 │   └── Dockerfile            # Backend-Image (php:8.5-fpm-alpine, pdo_pgsql)
 ├── docker-compose.local.yml  # Lokale Infra: Postgres :5433, Mailpit :1027/:8027
 ├── docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit :1028/:8028, Web :8081
-├── docker-compose.prod.yml   # Portainer-Stack für Produktion (webnet)
+├── deployment/
+│   └── docker-compose.prod.yml  # Portainer-Stack für Produktion (webnet)
 ├── Caddyfile.e2e             # Caddy-Konfiguration für den E2E-Stack
 ├── .github/workflows/ci.yml  # CI/CD-Pipeline
 ├── sync.sh                   # Frontend-Deployment via rclone auf den Produktionsserver
@@ -137,7 +138,7 @@ GitHub Actions (`.github/workflows/ci.yml`) auf jedem Push/PR:
 
 Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird statisch von Caddy serviert.
 
-1. **Stack anlegen:** Portainer → Stacks → Add stack. Namen `analytics` verwenden und `docker-compose.prod.yml`
+1. **Stack anlegen:** Portainer → Stacks → Add stack. Namen `analytics` verwenden und `deployment/docker-compose.prod.yml`
    hochladen (oder die Git-URL des Repos hinterlegen). Das externe Netz `webnet` muss existieren.
 2. **ENV-Variablen setzen** (Stack → Edit → Environment Variables). Ohne `APP_KEY`/`JWT_SECRET` verweigert der
    Gatekeeper den Start im `production`-Modus (Container beendet sich mit `FATAL: APP_KEY/JWT_SECRET fehlt`):

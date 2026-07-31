@@ -79,8 +79,7 @@ class GmailRestTransportTest extends TestCase
             'https://hook.make.com/*' => Http::response([], 200),
         ]);
 
-        putenv('MAKE_WEBHOOK_URL=https://hook.make.com/analytics');
-        putenv('MAKE_API_KEY=secret-key');
+        config(['mail.make_webhook.url' => 'https://hook.make.com/analytics', 'mail.make_webhook.api_key' => 'secret-key']);
 
         try {
             $transport = new GmailRestTransport('client-id', 'client-secret', 'refresh-token');
@@ -97,8 +96,7 @@ class GmailRestTransportTest extends TestCase
                 $this->assertStringContainsString('Token Refresh failed', $e->getMessage());
             }
         } finally {
-            putenv('MAKE_WEBHOOK_URL');
-            putenv('MAKE_API_KEY');
+            config(['mail.make_webhook.url' => null, 'mail.make_webhook.api_key' => null]);
         }
 
         Http::assertSent(function ($request) {

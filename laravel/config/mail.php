@@ -16,6 +16,11 @@ return [
 
     'default' => env('MAIL_MAILER', 'log'),
 
+    'make_webhook' => [
+        'url' => env('MAKE_WEBHOOK_URL'),
+        'api_key' => env('MAKE_API_KEY'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations
