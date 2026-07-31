@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useSite } from '../context/SiteContext'
 import { fetchEvents, type EventRow, type Paginator } from '../lib/api'
-import { currentSite } from '../lib/site'
 
 function formatDate(value: string): string {
   const date = new Date(value)
@@ -8,7 +8,7 @@ function formatDate(value: string): string {
 }
 
 export function EventsPage() {
-  const site = currentSite()
+  const { site } = useSite()
   const [name, setName] = useState('')
   const [page, setPage] = useState(1)
   const [result, setResult] = useState<Paginator<EventRow> | null>(null)
@@ -17,7 +17,7 @@ export function EventsPage() {
   useEffect(() => {
     let cancelled = false
     setError(null)
-    fetchEvents({ site, name: name || undefined, page })
+    fetchEvents({ site: site || undefined, name: name || undefined, page })
       .then((data) => {
         if (!cancelled) setResult(data)
       })

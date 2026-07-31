@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\PageView;
 use App\Services\StatsAggregator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class StatsController extends Controller
 {
     public function summary(Request $request, StatsAggregator $aggregator): JsonResponse
     {
-        $site = $request->validate(['site' => ['required', 'string', 'max:255']])['site'];
+        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
+        $site = $request->input('site') ?: null;
 
         $from = $request->filled('from')
             ? Carbon::parse($request->query('from'))
@@ -21,12 +25,18 @@ class StatsController extends Controller
             ? Carbon::parse($request->query('to'))
             : Carbon::today();
 
-        return response()->json($aggregator->summary($site, $from->startOfDay(), $to->endOfDay()));
+        $from = $from->startOfDay();
+        $to = $to->endOfDay();
+
+        $key = 'stats.summary.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d');
+
+        return response()->json(Cache::remember($key, 300, fn () => $aggregator->summary($site, $from, $to)));
     }
 
     public function events(Request $request, StatsAggregator $aggregator): JsonResponse
     {
-        $site = $request->validate(['site' => ['required', 'string', 'max:255']])['site'];
+        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
+        $site = $request->input('site') ?: null;
 
         $from = $request->filled('from')
             ? Carbon::parse($request->query('from'))
@@ -38,7 +48,12 @@ class StatsController extends Controller
         $name = $request->filled('name') ? (string) $request->query('name') : null;
         $page = max(1, (int) $request->query('page', 1));
 
-        return response()->json($aggregator->events($site, $from->startOfDay(), $to->endOfDay(), $name, 20, ['page' => $page]));
+        $from = $from->startOfDay();
+        $to = $to->endOfDay();
+
+        $key = 'stats.events.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d').'.'.($name ?? 'all').'.'.$page;
+
+        return response()->json(Cache::remember($key, 60, fn () => $aggregator->events($site, $from, $to, $name, 20, $page)));
     }
 
     public function realtime(Request $request, StatsAggregator $aggregator): JsonResponse
@@ -50,6 +65,26 @@ class StatsController extends Controller
 
         $minutes = (int) $request->query('minutes', config('analytics.stream.realtime_window_minutes', 30));
 
-        return response()->json($aggregator->realtime(is_string($site) ? $site : null, $minutes));
+        $key = 'stats.realtime.'.($site ?? 'all').'.'.$minutes;
+
+        return response()->json(Cache::remember($key, 15, fn () => $aggregator->realtime(is_string($site) ? $site : null, $minutes)));
+    }
+
+    public function sites(Request $request): JsonResponse
+    {
+        $fromPageviews = PageView::query()->distinct()->pluck('site');
+        $fromEvents = Event::query()->distinct()->pluck('site');
+        $configured = array_keys(config('analytics.sites', []));
+
+        $sites = collect($fromPageviews)
+            ->merge($fromEvents)
+            ->merge($configured)
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        return response()->json($sites);
     }
 }

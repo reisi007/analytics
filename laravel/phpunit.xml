@@ -26,6 +26,7 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
+        <env name="JWT_SECRET" value="base64:test-secret-for-phpunit-tests-only-1234567890=="/>
         <env name="MAIL_MAILER" value="smtp"/>
         <env name="MAIL_HOST" value="127.0.0.1"/>
         <env name="MAIL_PORT" value="1028"/>

@@ -33,6 +33,8 @@ class MockEventSource {
 
 describe('RealtimePage', () => {
   beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('analytics_token', 'test')
     MockEventSource.instances = []
     vi.stubGlobal('EventSource', MockEventSource)
     vi.stubGlobal('fetch', vi.fn())
@@ -42,14 +44,16 @@ describe('RealtimePage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('opens an SSE stream for the current site', () => {
+  it('opens an SSE stream for the current site with the auth token', () => {
     render(
       <MemoryRouter>
         <RealtimePage />
       </MemoryRouter>,
     )
     expect(MockEventSource.instances).toHaveLength(1)
-    expect(MockEventSource.instances[0].url).toContain('/api/stream?site=')
+    expect(MockEventSource.instances[0].url).toContain('/api/stream?')
+    expect(MockEventSource.instances[0].url).toContain('token=test')
+    expect(MockEventSource.instances[0].url).toContain('site=')
   })
 
   it('updates counters from snapshot items and the feed from activity messages', async () => {
@@ -121,7 +125,8 @@ describe('RealtimePage', () => {
 
       expect(MockEventSource.instances).toHaveLength(2)
       expect(MockEventSource.instances[0].closed).toBe(true)
-      expect(MockEventSource.instances[1].url).toContain('/api/stream?site=')
+      expect(MockEventSource.instances[1].url).toContain('/api/stream?')
+      expect(MockEventSource.instances[1].url).toContain('token=test')
     } finally {
       vi.useRealTimers()
     }

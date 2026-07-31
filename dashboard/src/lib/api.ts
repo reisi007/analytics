@@ -1,3 +1,5 @@
+import { clearToken, clearUser, getToken } from './auth'
+
 export interface Totals {
   pageviews: number
   unique: number
@@ -94,17 +96,38 @@ export class ApiError extends Error {
 }
 
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init)
+  const token = getToken()
+  const response = token
+    ? await fetch(url, { ...init, headers: new Headers({ ...headersFrom(init), Authorization: `Bearer ${token}` }) })
+    : await fetch(url, init)
+  if (response.status === 401) {
+    clearToken()
+    clearUser()
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.assign('/login')
+    }
+  }
   if (!response.ok) {
     throw new ApiError(`Request fehlgeschlagen: ${response.status} ${response.statusText}`, response.status)
   }
   return (await response.json()) as T
 }
 
+function headersFrom(init?: RequestInit): Record<string, string> {
+  if (!init?.headers) return {}
+  if (init.headers instanceof Headers) {
+    return Object.fromEntries(init.headers.entries())
+  }
+  if (Array.isArray(init.headers)) {
+    return Object.fromEntries(init.headers)
+  }
+  return init.headers as Record<string, string>
+}
+
 function buildQuery(params: object): string {
   const search = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== '') {
+    if (value !== undefined && value !== null && value !== '') {
       search.set(key, String(value))
     }
   }
@@ -113,13 +136,13 @@ function buildQuery(params: object): string {
 }
 
 export interface SummaryParams {
-  site: string
+  site?: string | null
   from?: string
   to?: string
 }
 
 export interface EventsParams {
-  site: string
+  site?: string | null
   from?: string
   to?: string
   name?: string
@@ -127,7 +150,7 @@ export interface EventsParams {
 }
 
 export interface RealtimeParams {
-  site: string
+  site?: string | null
   minutes?: number
 }
 
@@ -153,4 +176,8 @@ export function fetchEvents(params: EventsParams): Promise<Paginator<EventRow>> 
 
 export function fetchRealtime(params: RealtimeParams): Promise<Realtime> {
   return fetchJson<Realtime>(realtimeUrl(params))
+}
+
+export function fetchSites(): Promise<string[]> {
+  return fetchJson<string[]>('/api/stats/sites')
 }

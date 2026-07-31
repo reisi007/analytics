@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { StatCard } from '../components/StatCard'
+import { useSite } from '../context/SiteContext'
 import type { Realtime, RecentActivity } from '../lib/api'
-import { currentSite } from '../lib/site'
+import { getToken } from '../lib/auth'
 
 interface StreamSnapshot {
   type: 'snapshot'
@@ -27,7 +28,7 @@ function isActivity(item: StreamItem): item is StreamActivity {
 }
 
 export function RealtimePage() {
-  const site = currentSite()
+  const { site } = useSite()
   const [realtime, setRealtime] = useState<Realtime | null>(null)
   const [feed, setFeed] = useState<RecentActivity[]>([])
   const [connected, setConnected] = useState(false)
@@ -41,7 +42,9 @@ export function RealtimePage() {
     const connect = () => {
       if (disposed) return
       setError(null)
-      source = new EventSource(`/api/stream?site=${encodeURIComponent(site)}`)
+      const params = new URLSearchParams({ token: getToken() ?? '' })
+      if (site) params.set('site', site)
+      source = new EventSource(`/api/stream?${params.toString()}`)
       source.addEventListener('open', () => setConnected(true))
       source.addEventListener('message', (event) => {
         let item: StreamItem

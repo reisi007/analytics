@@ -26,6 +26,8 @@ describe('EventsPage', () => {
   const fetchMock = vi.fn()
 
   beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('analytics_token', 'test')
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
   })

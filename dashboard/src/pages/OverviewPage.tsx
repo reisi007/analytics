@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { SeriesChart } from '../components/SeriesChart'
 import { StatCard } from '../components/StatCard'
+import { useSite } from '../context/SiteContext'
 import { fetchSummary, type Summary } from '../lib/api'
-import { currentSite } from '../lib/site'
 
 const RANGES = [
   { days: 7, label: '7 Tage' },
@@ -23,7 +23,7 @@ function rangeParams(days: number): { from: string; to: string } {
 }
 
 export function OverviewPage() {
-  const site = currentSite()
+  const { site } = useSite()
   const [range, setRange] = useState(30)
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +32,7 @@ export function OverviewPage() {
     let cancelled = false
     setError(null)
     const { from, to } = rangeParams(range)
-    fetchSummary({ site, from, to })
+    fetchSummary({ site: site || undefined, from, to })
       .then((data) => {
         if (!cancelled) setSummary(data)
       })
@@ -52,7 +52,7 @@ export function OverviewPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">Übersicht</h1>
+        <h1 className="text-lg font-semibold">{site === '' ? 'Alle Sites' : site}</h1>
         <div className="join">
           {RANGES.map((option) => (
             <button
