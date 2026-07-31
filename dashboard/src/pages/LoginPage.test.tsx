@@ -32,6 +32,13 @@ describe('LoginPage', () => {
     vi.unstubAllGlobals()
   })
 
+  it('shows the brand logo and name', () => {
+    renderLogin()
+
+    expect(screen.getByText('Analytics')).toBeInTheDocument()
+    expect(screen.getByAltText('Analytics Logo')).toBeInTheDocument()
+  })
+
   it('stores the token and navigates home on success', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

@@ -25,6 +25,10 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-base-200">
+      <div className="flex flex-col items-center gap-2 mb-6">
+        <img src="/favicon.svg" alt="Analytics Logo" className="h-14 w-14 rounded-box" />
+        <span className="text-2xl font-bold">Analytics</span>
+      </div>
       <div className="card w-full max-w-sm bg-base-100 shadow-sm">
         <div className="card-body">
           <h1 className="card-title">Anmeldung</h1>
