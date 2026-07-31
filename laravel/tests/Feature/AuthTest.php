@@ -83,6 +83,13 @@ class AuthTest extends TestCase
             ->assertStatus(401);
     }
 
+    public function test_protected_api_returns_401_without_accept_json_header(): void
+    {
+        $this->get('/api/stats/events?site=localhost&page=1')
+            ->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
     public function test_stats_with_token_returns_200(): void
     {
         $this->login();
