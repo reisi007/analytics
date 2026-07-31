@@ -2,6 +2,12 @@
 Agents.md
 Agents.todo.md
 
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+.env.production
+
 # --- PHP / Laravel ---
 laravel/vendor/
 laravel/.env

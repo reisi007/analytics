@@ -150,14 +150,33 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
    | `APP_KEY` | `base64:...` (via `php artisan key:generate`) |
    | `JWT_SECRET` | geheimer Wert (via `php artisan jwt:secret`) |
    | `DB_PASSWORD` | Datenbank-Passwort |
-   | `MAIL_MAILER` | `smtp` |
-   | `MAIL_HOST` | SMTP-Host |
-   | `MAIL_PORT` | SMTP-Port (z. B. `587`) |
+   | `MAIL_MAILER` | `gmail_rest` (Gmail OAuth2 REST) |
+   | `MAIL_HOST` | nur bei SMTP-Mode nötig (z. B. `smtp.gmail.com`) |
+   | `MAIL_PORT` | nur bei SMTP-Mode nötig (z. B. `587`) |
    | `MAIL_FROM_ADDRESS` | z. B. `stats@reisinger.pictures` |
    | `REPORT_EMAIL` | Empfänger des Weekly Reports |
+   | `OAUTH_CLIENT_ID` | Google OAuth Client ID (Gmail REST) |
+   | `OAUTH_CLIENT_SECRET` | Google OAuth Client Secret |
+   | `OAUTH_REFRESH_TOKEN` | Google OAuth Refresh Token |
+   | `MAKE_WEBHOOK_URL` | Make.com-Webhook für Mail-/Token-Fehler-Alerts |
+   | `MAKE_API_KEY` | Make.com-API-Key für den Webhook |
+   | `CHECK_INTERVAL` | Sekunden zwischen Token-Checks (Default `86400`) |
+   | `ANALYTICS_ADMIN_EMAIL` | Admin-Login (JWT) |
+   | `ANALYTICS_ADMIN_PASSWORD` | Admin-Passwort |
 
-   Die Produktions-Sites werden einmalig über den Seeder angelegt bzw. via `sites:add` verwaltet (siehe unten).
-   Da der Stack beim Start `php artisan migrate --force` ausführt, werden Migrationen automatisch angewendet.
+   Beim Start führt der Stack `php artisan migrate --force` **und** `php artisan db:seed --force` aus:
+   Migrationen werden automatisch angewendet, und die idempotenten Seeder legen den Admin-User (aus
+   `ANALYTICS_ADMIN_EMAIL`/`ANALYTICS_ADMIN_PASSWORD`) sowie die CORS-Whitelist (`reisinger.pictures`,
+   `all-the.rest`) an. Weitere Sites lassen sich via `sites:add` verwalten (siehe unten).
+
+   Als Referenz für die Portainer-ENV-Variablen liegt `.env.production` im Projekt-Root (gitignored) mit den
+   generierten Werten für `APP_KEY` und `JWT_SECRET` sowie Platzhaltern für die übrigen Secrets.
+
+   Neben `analytics_php`/`analytics_worker`/`analytics_scheduler` läuft der Sidecar `analytics_token_checker`:
+   Er prüft alle `CHECK_INTERVAL` Sekunden die Gültigkeit des Gmail-OAuth2-Refresh-Tokens (POST an
+   `oauth2.googleapis.com`) und sendet bei einem Fehler einen Alert an den Make.com-Webhook
+   (`MAKE_WEBHOOK_URL`). Das Netz `analytics_internal` hat dafür Internet-Egress (Gmail REST + Make.com); die
+   DB bleibt über keine Host-Ports erreichbar.
 
 3. **Caddyfile aktivieren:** Im caddyfile-Repo den Block für `stats.reisinger.pictures, stats.all-the.rest`
    prüfen (FastCGI-Proxy auf `analytics_php:9000`, `flush_interval -1` für SSE) und per `./sync.sh` deployen.
