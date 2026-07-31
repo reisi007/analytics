@@ -1,16 +1,19 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ToastProvider } from '../context/ToastContext'
 import { LoginPage } from './LoginPage'
 
 function renderLogin() {
   return render(
-    <MemoryRouter initialEntries={['/login']}>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<div>Home</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<div>Home</div>} />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
 }
 
@@ -43,7 +46,7 @@ describe('LoginPage', () => {
     expect(localStorage.getItem('analytics_token')).toBe('jwt')
   })
 
-  it('shows an error alert on a 401 and stays on the login page', async () => {
+  it('shows an error toast on a 401 and stays on the login page', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => ({}) })
     vi.stubGlobal('fetch', fetchMock)
 

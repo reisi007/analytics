@@ -1,23 +1,23 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
+import { useToast } from '../context/ToastContext'
 import { login } from '../lib/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    setError(null)
     setSubmitting(true)
     try {
       await login(email, password)
       navigate('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login fehlgeschlagen')
+      toast.error(err instanceof Error ? err.message : 'Login fehlgeschlagen')
     } finally {
       setSubmitting(false)
     }
@@ -53,7 +53,6 @@ export function LoginPage() {
                 className="input input-bordered w-full"
               />
             </label>
-            {error && <div className="alert alert-error">{error}</div>}
             <button type="submit" disabled={submitting} className={`btn btn-primary w-full mt-6 ${submitting ? 'btn-disabled' : ''}`}>
               {submitting ? 'Anmelden…' : 'Anmelden'}
             </button>

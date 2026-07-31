@@ -1,5 +1,6 @@
 import { Navigate, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router'
 import { SiteProvider, useSite } from './context/SiteContext'
+import { ToastProvider } from './context/ToastContext'
 import { getUser, isAuthenticated, logout } from './lib/auth'
 import { EventsPage } from './pages/EventsPage'
 import { LoginPage } from './pages/LoginPage'
@@ -113,17 +114,19 @@ function DashboardLayout() {
 
 export function App() {
   return (
-    <SiteProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<DashboardLayout />}>
-            <Route index element={<OverviewPage />} />
-            <Route path="/realtime" element={<RealtimePage />} />
-            <Route path="/events" element={<EventsPage />} />
+    <ToastProvider>
+      <SiteProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route index element={<OverviewPage />} />
+              <Route path="/realtime" element={<RealtimePage />} />
+              <Route path="/events" element={<EventsPage />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </SiteProvider>
+        </Routes>
+      </SiteProvider>
+    </ToastProvider>
   )
 }
