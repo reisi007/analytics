@@ -120,6 +120,10 @@
 - [ ] **E2E: echter SSE-Push testen** — `realtime.spec` prüft aktuell nur das statische Render der Realtime-Seite
       (Counter + Feed sichtbar). Es fehlt ein Test, der einen Track-Request sendet und prüft, dass das Ereignis über
       den SSE-Stream (`/ingest/stream`) im Realtime-Feed erscheint. [E2E `realtime.spec`]
+- [ ] **E2E-Teststabilität — eigene zu trackende Website pro Test (Ideen-Notiz):** Tests funktionieren aktuell nur mit
+      **sauberer Datenbasis** (`down -v`). Möglicher Ansatz, um ohne DB-Reset deterministisch zu sein: **jeder Test legt
+      seine eigene zu trackende Website an und löscht sie wieder** (via `SiteHelper`). **Nicht jetzt umsetzen** — Deploy/
+      Sync hat Priorität; erst nach dem nächsten Release bewerten.
 - [ ] **E2E-Teststabilität beobachten:** Mit den neuen Helpern + `retries: CI?1:0` + `workers: 1` + `down -v`-Determinismus
       ist die Basis gesetzt. Wenn in CI weiter Flakes auftreten: exakte Zähler-Assertions prüfen, Stale-Cache-Fälle
       (300s-Summary-/60s-Events-Cache) berücksichtigen, parallele Specs seriell halten, `db_data_test`-Volume beachten.
