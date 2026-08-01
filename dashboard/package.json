@@ -12,6 +12,7 @@
     "build": "pnpm build:app && pnpm build:tracker",
     "build:app": "vite build",
     "build:tracker": "vite build --config vite.tracker.config.ts",
+    "deploy": "pnpm build && bash ../sync.sh",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test": "vitest run",

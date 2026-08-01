@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "==================================================="
 echo "🔄 Starte reinen Rclone Sync zum Server..."
 echo "==================================================="
