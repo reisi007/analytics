@@ -5,12 +5,17 @@ export default defineConfig({
   reporter: [['list'], ['html']],
   retries: process.env.CI ? 1 : 0,
   fullyParallel: false,
-  // Alle Specs teilen sich einen Stack (DB/Image) — serielle Ausführung hält die Zähler deterministisch.
-  workers: 1,
+  // Jede Spec erzeugt ihre eigenen eindeutigen Sites (SiteHelper) und räumt sie im
+  // teardown ab → Specs sind untereinander isoliert und laufen auch parallel sicher.
+  workers: process.env.CI ? 4 : 2,
   use: {
     baseURL: 'http://localhost:8081',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Erlaubt eigene Test-Hosts (*.e2e.local) für isoliertes Tracking ohne DNS.
+    launchOptions: {
+      args: ['--host-resolver-rules=MAP *.e2e.local 127.0.0.1'],
+    },
   },
   projects: [
     {

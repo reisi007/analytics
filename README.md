@@ -5,7 +5,7 @@
 # Analytics
 
 DSGVO-konformes Webanalyse-System für die Domains `reisinger.pictures` und `all-the.rest`.
-Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter Tracker und E2E-Tests.
+Monorepo (öffentliches GitHub-Repo `reisi007/analytics`): Laravel-Backend (API), React-SPA (Dashboard), komprimierter Tracker und E2E-Tests.
 
 ## Überblick
 
@@ -125,10 +125,9 @@ pnpm test:coverage
 pnpm build
 
 # E2E (Playwright, Stack auf :8081) — docker-compose.test.yml liegt im Repo-Root
-# Vor jedem Lauf den Stack frisch aufsetzen (persistentes db_data_test-Volume,
-# sonst maskieren alte Daten Regressionen):
+# Die Tests legen eigene eindeutige Sites an und räumen sie auf → kein leeres DB nötig,
+# Stack ist wiederholbar ohne down -v (optional: docker compose -f docker-compose.test.yml down -v).
 cd ..
-docker compose -f docker-compose.test.yml down -v
 docker compose -f docker-compose.test.yml up -d
 docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force
 cd e2e && npx playwright install --with-deps && npx playwright test

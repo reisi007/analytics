@@ -3,12 +3,13 @@ import { AuthHelper } from '../helpers/AuthHelper'
 import { SiteHelper } from '../helpers/SiteHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 
-const SITE = 'e2e-sites.local'
-const SITE_PATTERN = /e2e-sites\.local/
-const SITE_CREATE = 'e2e-sites-create.local'
-const SITE_CREATE_PATTERN = /e2e-sites-create\.local/
-const DATA_SITE = 'e2e-sites-data.local'
-const DATA_SITE_PATTERN = /e2e-sites-data\.local/
+const RUN = Date.now()
+const SITE = `e2e-sites-${RUN}.local`
+const SITE_PATTERN = new RegExp(`e2e-sites-${RUN}\\.local`)
+const SITE_CREATE = `e2e-sites-create-${RUN}.local`
+const SITE_CREATE_PATTERN = new RegExp(`e2e-sites-create-${RUN}\\.local`)
+const DATA_SITE = `e2e-sites-data-${RUN}.local`
+const DATA_SITE_PATTERN = new RegExp(`e2e-sites-data-${RUN}\\.local`)
 const BASE_URL = 'http://localhost:8081'
 
 let requestContext: APIRequestContext
@@ -34,12 +35,12 @@ test('Site anlegen', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Sites' })).toBeVisible()
 
   await page.getByLabel('Site-Name').fill(SITE_CREATE)
-  await page.getByLabel('Aliases').fill('e2e-sites-create.local,www.e2e-sites-create.local')
+  await page.getByLabel('Aliases').fill(`${SITE_CREATE},www.${SITE_CREATE}`)
   await page.getByRole('button', { name: 'Site hinzufügen' }).click()
 
   const row = page.getByRole('row', { name: SITE_CREATE_PATTERN })
   await expect(row).toBeVisible()
-  await expect(row.getByText('www.e2e-sites-create.local')).toBeVisible()
+  await expect(row.getByText(`www.${SITE_CREATE}`)).toBeVisible()
   await new ToastHelper(page).expectToast('Site angelegt')
 })
 
@@ -62,11 +63,11 @@ test('Aliases einer Site editieren', async ({ page }) => {
 
   const dialog = page.getByRole('dialog')
   await expect(dialog).toContainText('Site bearbeiten')
-  await dialog.locator('#edit-aliases').fill('e2e-sites.local,blog.e2e-sites.local')
+  await dialog.locator('#edit-aliases').fill(`${SITE},blog.${SITE}`)
   await dialog.getByRole('button', { name: 'Speichern' }).click()
 
-  await expect(row.getByText('blog.e2e-sites.local')).toBeVisible()
-  await expect(row.getByText('www.e2e-sites.local')).toHaveCount(0)
+  await expect(row.getByText(`blog.${SITE}`)).toBeVisible()
+  await expect(row.getByText(`www.${SITE}`)).toHaveCount(0)
   await new ToastHelper(page).expectToast('Site aktualisiert')
 })
 

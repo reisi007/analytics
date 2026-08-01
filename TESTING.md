@@ -20,9 +20,6 @@
 - RefreshDatabase + `SiteDetector::flush()` in `setUp` (SiteDetector cached Map statisch).
 - `phpunit.xml` definiert Test-Konfig via `<env>`; `config('analytics.stream.max_runtime')` in Stream-Tests klein setzen.
 
-**Aktuell rote Tests (Audit 2026-08-01, noch offen):** `AuthTest::test_stats_with_token_returns_200`,
-`StatsTest::test_summary_is_cached`, E2E `00-tracking.spec` — verursacht durch den **Zeitzonen-Bug** (siehe Fallstricke).
-
 ## Frontend-Tests (`dashboard/src/`)
 
 - Tests liegen **neben** den Quell-Dateien: `lib/api.test.ts`, `lib/auth.test.ts`, `lib/site.test.ts`,
@@ -37,7 +34,11 @@
   (Caddy :8081, mountet `dashboard/dist`).
 - `php`-Service läuft **migrations/seed nicht automatisch** → manuell: `docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force`.
 - Playwright: `npx playwright install --with-deps` dann `npx playwright test`. baseURL `http://localhost:8081`.
-- Specs: `00-tracking`, `auth`, `realtime`, `sites`, `sites-management`.
+- Specs: `00-tracking`, `auth`, `realtime`, `sites`, `sites-management`, `security`.
+- **Isolation:** Jede Spec legt eigene eindeutige Sites über `SiteHelper` an (`uniqueSite`, `*.e2e.local`) und räumt sie im
+  `afterAll`-Teardown ab → **keine leere DB nötig**, Tests laufen parallel-sicher (`workers` 4 in CI / 2 lokal).
+  Chromium nutzt `--host-resolver-rules=MAP *.e2e.local 127.0.0.1`, damit die Track-Seite unter der Test-Site
+  erreichbar ist (Caddy bedient jeden Host).
 
 ## Verifikations-Playbook
 
@@ -69,12 +70,11 @@ docker compose -f deployment/docker-compose.prod.files.yml config
 
 ## Bekannte Fallstricke
 
-- **Zeitzonen-Range (rot machend):** `from`/`to` werden im Backend in `Europe/Berlin` interpretiert
-  (`ReportTime::parse`), das Dashboard berechnet sie in Browser-TZ → zwischen 22:00–24:00 UTC fällt `to` einen Tag
-  zurück, Pageviews werden ausgeschlossen (`AuthTest::test_stats_with_token_returns_200`, `StatsTest::test_summary_is_cached`,
-  E2E `00-tracking.spec`). Beim Fix beachten: `StatsController::summary/events` + `OverviewPage.tsx`.
-- **Persistentes Volume `db_data_test`:** verdeckt Regressionen — für deterministische lokale E2E vorher
-  `docker compose -f docker-compose.test.yml down -v` (Volume löschen), sonst alter Datenstand bleibt.
+- **Zeitzonen-Range:** `from`/`to` werden im Backend als **UTC-Kalendertage** interpretiert
+  (`ReportTime::parseUtc`, `StatsController::summary/events`), das Dashboard berechnet sie ebenfalls in UTC
+  (`OverviewPage.tsx`) → konsistent, kein Tag-Versatz mehr.
+- **Persistentes Volume `db_data_test`:** E2E-Specs sind durch eigene Sites isoliert (kein leeres DB nötig). Für einen
+  frischen Start trotzdem möglich: `docker compose -f docker-compose.test.yml down -v`.
 - **`CACHE_STORE=array` in Tests:** Cache lebt nur pro Test → `Cache::flush()` wirkt, TTL-Asserts teils flaky.
 - **SiteDetector statisch cached:** Nach Seeder/DB-Änderungen in Tests `SiteDetector::flush()` nötig.
 - **`postJson` vs. text/plain:** Die produktiven Track-Requests kommen mit `Content-Type: text/plain` (Tracker,
@@ -82,4 +82,8 @@ docker compose -f deployment/docker-compose.prod.files.yml config
   (`$this->post('/ingest/track', [], ['Referer' => …])` + Raw-Body).
 - **Stream-Tests:** `config(['analytics.stream.max_runtime' => 0.2, 'poll_seconds' => 0.1])` setzen, sonst Endlos-SSE.
 - **E2E-Login:** Seeder mit `ANALYTICS_ADMIN_EMAIL=admin@e2e.local` / `ANALYTICS_ADMIN_PASSWORD=password`; Playwright
-  Login-Overlay via `helpers/login.ts`.
+  Login-Overlay via `helpers/AuthHelper.ts`.
+- **E2E-Hosts `*.e2e.local`:** Brauchen den `--host-resolver-rules`-Launch-Arg (playwright.config.ts), sonst 404 beim
+  Laden der Track-Seite unter der Test-Site.
+- **Cache-TTL-Asserts (Backend):** Mit `$this->travel(61)->seconds()` bzw. `(16)` die Events-/Realtime-TTL überprüfen
+  (Array-Store nutzt `Carbon::now()` → `travel()` altert Caches).

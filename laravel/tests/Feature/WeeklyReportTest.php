@@ -65,4 +65,11 @@ class WeeklyReportTest extends TestCase
         $this->assertMailpitContainsHtml('report@example.com', 'dev.reisinger.pictures');
         $this->assertMailpitContainsHtml('report@example.com', '/subdomain-page');
     }
+
+    public function test_weekly_report_fails_without_recipient(): void
+    {
+        config(['analytics.report.email' => null]);
+
+        $this->artisan('report:weekly')->assertExitCode(1);
+    }
 }

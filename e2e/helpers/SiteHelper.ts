@@ -1,5 +1,9 @@
 import type { APIRequestContext } from '@playwright/test'
 
+export function uniqueSite(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}.e2e.local`
+}
+
 export interface SiteRow {
   id: number
   site: string

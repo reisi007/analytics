@@ -160,14 +160,21 @@ Changelog-Konfig: `.git-cliff.toml`.
 ### E2E (`e2e/`)
 | Datei | Aufgabe |
 |---|---|
-| `playwright.config.ts` | baseURL `http://localhost:8081`, chromium, retries (CI 2) |
-| `helpers/login.ts` | Login-Helper für Tests |
-| `tests/00-tracking.spec.ts` | Track-Seite → Pageview in Stats |
+| `playwright.config.ts` | baseURL `http://localhost:8081`, chromium, retries (CI 1), `workers` 4/2, `fullyParallel: false`, `--host-resolver-rules=MAP *.e2e.local 127.0.0.1` |
+| `helpers/AuthHelper.ts` | Login/Logout-Helper (Formular, warten auf Redirect) |
+| `helpers/NetworkHelper.ts` | Warten auf API-Antworten (track, login, summary, …) |
+| `helpers/ToastHelper.ts` | Toast-Assertions (daisyUI `.toast .alert`) |
+| `helpers/SiteHelper.ts` | Zentrales Site-Management über API: `ensureSite`, `track`, `summary`, `deleteSite`, `teardown`, `uniqueSite(prefix)` |
+| `tests/00-tracking.spec.ts` | Track-Seite unter eigener `*.e2e.local`-Site → Pageview/Event in Stats (1/1/1) |
 | `tests/auth.spec.ts` | Redirect unauthentifiziert, falsches/wahres Passwort |
-| `tests/realtime.spec.ts` | Realtime-Seite (Counter + Feed sichtbar) |
-| `tests/sites.spec.ts` | Site-Switcher + „Alle Sites" |
-| `tests/sites-management.spec.ts` | Sites-CRUD über UI (Add/Edit/Delete, mit/ohne Daten) |
+| `tests/realtime.spec.ts` | Realtime-Seite (Counter + Feed) + echter SSE-Push-Test (Track → Feed) |
+| `tests/sites.spec.ts` | Site-Switcher + „Alle Sites" (eigene Site) |
+| `tests/sites-management.spec.ts` | Sites-CRUD über UI (Add/Edit/Delete, mit/ohne Daten, eigene Sites) |
+| `tests/security.spec.ts` | 403/401, Stream-JWT-403, Mehr-Site-Aggregation (www→Apex), Events-Seite |
 | `Caddyfile.e2e` (Repo-Root) | Caddy für E2E (fastcgi → `php:9000`, `/tracker.js`, SPA-Fallback) |
+
+**E2E-Isolation:** Jede Spec legt ihre eigenen eindeutigen Sites an (`SiteHelper.uniqueSite`) und räumt sie im
+`afterAll`-Teardown ab → Tests brauchen **keine leere DB** mehr und sind **parallel-sicher** (`workers` > 1).
 
 ### CI (`ci.yml`)
 | Job | Aufgabe |

@@ -262,4 +262,86 @@ class StatsTest extends TestCase
             ->assertJsonPath('recent.0.name', 'click-b')
             ->assertJsonPath('recent.1.name', 'click-a');
     }
+
+    public function test_events_cache_expires_after_ttl(): void
+    {
+        $token = $this->login();
+
+        Event::create([
+            'site' => 'reisinger.pictures',
+            'name' => 'a',
+            'url' => '/a',
+            'payload' => [],
+            'session_hash' => 'hash-a',
+            'created_at' => now(),
+        ]);
+
+        $from = now()->subDays(2)->format('Y-m-d');
+        $to = now()->format('Y-m-d');
+        $url = "/ingest/stats/events?site=reisinger.pictures&from={$from}&to={$to}";
+
+        $this->getJson($url, $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('total', 1);
+
+        Event::create([
+            'site' => 'reisinger.pictures',
+            'name' => 'b',
+            'url' => '/b',
+            'payload' => [],
+            'session_hash' => 'hash-b',
+            'created_at' => now(),
+        ]);
+
+        // Innerhalb der 60s-TTL weiterhin aus dem Cache.
+        $this->getJson($url, $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('total', 1);
+
+        $this->travel(61)->seconds();
+
+        // TTL abgelaufen → frische Daten.
+        $this->getJson($url, $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('total', 2);
+    }
+
+    public function test_realtime_cache_expires_after_ttl(): void
+    {
+        $token = $this->login();
+
+        PageView::create([
+            'site' => 'reisinger.pictures',
+            'url' => '/r1',
+            'title' => 'R1',
+            'session_hash' => 'hash-r1',
+            'created_at' => now(),
+        ]);
+
+        $url = '/ingest/stats/realtime?site=reisinger.pictures&minutes=60';
+
+        $this->getJson($url, $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('pageviews', 1);
+
+        PageView::create([
+            'site' => 'reisinger.pictures',
+            'url' => '/r2',
+            'title' => 'R2',
+            'session_hash' => 'hash-r2',
+            'created_at' => now(),
+        ]);
+
+        // Innerhalb der 15s-TTL weiterhin aus dem Cache.
+        $this->getJson($url, $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('pageviews', 1);
+
+        $this->travel(16)->seconds();
+
+        // TTL abgelaufen → frische Daten.
+        $this->getJson($url, $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('pageviews', 2);
+    }
 }
