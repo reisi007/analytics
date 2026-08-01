@@ -51,7 +51,6 @@ services:
       REPORT_EMAIL: ${REPORT_EMAIL}
       STREAM_POLL_SECONDS: ${STREAM_POLL_SECONDS:-2}
       STREAM_MAX_RUNTIME: ${STREAM_MAX_RUNTIME:-300}
-      FPM_MAX_CHILDREN: ${FPM_MAX_CHILDREN:-10}
       LOG_CHANNEL: stderr
       ANALYTICS_ADMIN_EMAIL: ${ANALYTICS_ADMIN_EMAIL}
       ANALYTICS_ADMIN_PASSWORD: ${ANALYTICS_ADMIN_PASSWORD}
@@ -66,12 +65,11 @@ services:
       if [ -z \"$$APP_KEY\" ] || [ -z \"$$JWT_SECRET\" ] || [ -z \"$$ANALYTICS_ADMIN_EMAIL\" ] || [ -z \"$$ANALYTICS_ADMIN_PASSWORD\" ]; then
       echo 'FATAL: APP_KEY/JWT_SECRET/ANALYTICS_ADMIN_EMAIL/ANALYTICS_ADMIN_PASSWORD fehlt'; exit 1; fi; fi;
       php artisan migrate --force;
-      php artisan db:seed --force;
+      php artisan seed:if-empty;
       php artisan config:cache;
       php artisan route:cache;
       php artisan optimize;
       (while true; do php artisan schedule:run >> /dev/null 2>&1; sleep 60; done) &
-      printf '[www]\npm = dynamic\npm.max_children = %s\npm.start_servers = 2\npm.min_spare_servers = 1\npm.max_spare_servers = 3\npm.max_requests = 500\n' "$${FPM_MAX_CHILDREN:-10}" > /usr/local/etc/php-fpm.d/zz-analytics.conf;
       exec php-fpm"
     healthcheck:
       test: ["CMD", "php", "-r", "$$e=0;$$s='';exit(@fsockopen('127.0.0.1',9000,$$e,$$s,2)?0:1);"]

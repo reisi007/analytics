@@ -181,12 +181,11 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
     | `ANALYTICS_TIMEZONE` | Report-Zeitzone für Tages-Aggregation/Wochenbericht (z. B. `Europe/Berlin`) |
     | `STREAM_POLL_SECONDS` | Poll-Intervall des SSE-Realtime-Streams (Default `2`, Prod `5`) |
     | `STREAM_MAX_RUNTIME` | Maximale Laufzeit des SSE-Streams in Sekunden, danach Reconnect (Default `300`) |
-    | `FPM_MAX_CHILDREN` | PHP-FPM-Pool: max. gleichzeitige Worker (Default `10`) — wird beim Start in `zz-analytics.conf` gesetzt |
 
-   Beim Start führt der Stack `php artisan migrate --force` **und** `php artisan db:seed --force` aus:
-   Migrationen werden automatisch angewendet, und die idempotenten Seeder legen den Admin-User (aus
-   `ANALYTICS_ADMIN_EMAIL`/`ANALYTICS_ADMIN_PASSWORD`) sowie die CORS-Whitelist (`reisinger.pictures`,
-   `all-the.rest`) an. Weitere Sites lassen sich via `sites:add` verwalten (siehe unten).
+   Beim Start führt der Stack `php artisan migrate --force` **und** `php artisan seed:if-empty` aus:
+   Migrationen werden automatisch angewendet, und die Seeder laufen nur bei leerer DB (Admin-User aus
+   `ANALYTICS_ADMIN_EMAIL`/`ANALYTICS_ADMIN_PASSWORD` sowie die CORS-Whitelist `reisinger.pictures`,
+   `all-the.rest`). Weitere Sites lassen sich via `sites:add` verwalten (siehe unten).
 
    Als Referenz für die Portainer-ENV-Variablen liegt `.env.production` im Projekt-Root (gitignored) mit den
    generierten Werten für `APP_KEY` und `JWT_SECRET` sowie Platzhaltern für die übrigen Secrets.

@@ -95,7 +95,7 @@ sync.sh                   # rclone-Deploy (portal-Modell)
 - ENV aus Portainer-Stack: `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_KEY`, `JWT_SECRET`, `DB_PASSWORD`, `MAIL_*`,
   `REPORT_EMAIL`, `STREAM_POLL_SECONDS`, `LOG_CHANNEL=stderr`, `ANALYTICS_ADMIN_EMAIL/PASSWORD`, `ANALYTICS_TIMEZONE`,
   `OAUTH_*`, `MAKE_WEBHOOK_URL`, `MAKE_API_KEY`.
-- Start: Gatekeeper → `migrate --force` → `db:seed --force` → `config:cache` → `route:cache` → `optimize` →
+- Start: Gatekeeper → `migrate --force` → `seed:if-empty` → `config:cache` → `route:cache` → `optimize` →
   Scheduler-Loop (`schedule:run` alle 60s) → `php-fpm`. Watchtower hält Image aktuell (Variante A).
 - Alte Doku erwähnte `analytics_worker`/`analytics_scheduler` — heute laufen Queue/Scheduler **im `analytics_php`**-Container
   (konsolidiert, siehe Commit 6de14e5).
