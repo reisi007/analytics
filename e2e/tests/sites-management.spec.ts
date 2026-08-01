@@ -1,10 +1,13 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { AuthHelper } from '../helpers/AuthHelper'
+import { SidebarHelper } from '../helpers/SidebarHelper'
 import { SiteHelper } from '../helpers/SiteHelper'
 import { SiteSwitcherHelper } from '../helpers/SiteSwitcherHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 
-const RUN = Date.now()
+// Lauf-spezifischer Suffix mit Zufallskomponente, damit Desktop- und
+// Mobile-Projekt (gleiche Spec, parallele Projekte) nicht kollidieren.
+const RUN = `${Date.now()}-${Math.floor(Math.random() * 10000)}`
 const SITE = `e2e-sites-${RUN}.local`
 const SITE_PATTERN = new RegExp(`e2e-sites-${RUN}\\.local`)
 const SITE_CREATE = `e2e-sites-create-${RUN}.local`
@@ -32,7 +35,7 @@ test.afterAll(async () => {
 
 test('Site anlegen', async ({ page }) => {
   await new AuthHelper(page).login()
-  await page.getByRole('link', { name: 'Sites' }).click()
+  await new SidebarHelper(page).open('Sites')
   await expect(page.getByRole('heading', { level: 1, name: 'Sites' })).toBeVisible()
 
   await page.getByLabel('Site-Name').fill(SITE_CREATE)

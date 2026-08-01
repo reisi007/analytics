@@ -25,7 +25,7 @@ function Brand() {
         <source srcSet="/favicon.svg" type="image/svg+xml" />
         <img src="/favicon.ico" alt="Analytics Logo" className="h-8 w-8 rounded-box" />
       </picture>
-      <span className="text-xl font-semibold">{site === '' ? 'Alle Sites' : site}</span>
+      <span className="max-w-16 truncate text-xl font-semibold sm:max-w-40">{site === '' ? 'Alle Sites' : site}</span>
     </div>
   )
 }
@@ -69,7 +69,7 @@ function SiteSwitcher() {
         onClick={() => setOpen((current) => !current)}
       >
         <SiteFavicon site={site} className="h-5 w-5" />
-        <span className="max-w-40 truncate">{site === '' ? 'Alle Sites' : site}</span>
+        <span className="max-w-16 truncate sm:max-w-40">{site === '' ? 'Alle Sites' : site}</span>
       </button>
       {open && (
         <ul
@@ -115,7 +115,7 @@ function AuthControls() {
 
   return (
     <>
-      {user?.email && <span className="text-sm text-base-content/70">{user.email}</span>}
+      {user?.email && <span className="hidden text-sm text-base-content/70 md:inline">{user.email}</span>}
       <button
         type="button"
         className="btn btn-ghost btn-sm"
@@ -129,56 +129,94 @@ function AuthControls() {
   )
 }
 
-function DashboardLayout() {
+const NAV_ITEMS = [
+  { to: '/', end: true, label: 'Übersicht' },
+  { to: '/realtime', end: false, label: 'Echtzeit' },
+  { to: '/events', end: false, label: 'Events' },
+  { to: '/sites', end: false, label: 'Sites' },
+]
+
+function HamburgerIcon() {
   return (
-    <div className="min-h-screen bg-base-200">
-      <div className="navbar bg-base-100 shadow-sm">
-        <div className="flex-1">
-          <Brand />
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  )
+}
+
+function DashboardLayout() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  return (
+    <div className="drawer min-h-screen bg-base-200">
+      <input
+        id="app-drawer"
+        type="checkbox"
+        className="drawer-toggle"
+        checked={menuOpen}
+        onChange={(event) => setMenuOpen(event.target.checked)}
+      />
+      <div className="drawer-content flex min-h-screen flex-col">
+        <div className="navbar bg-base-100 shadow-sm">
+          <div className="flex flex-1 items-center gap-1">
+            <label
+              htmlFor="app-drawer"
+              aria-label="Menü öffnen"
+              className="btn btn-ghost btn-square drawer-button lg:hidden"
+            >
+              <HamburgerIcon />
+            </label>
+            <Brand />
+          </div>
+          <div className="flex-none">
+            <ul className="menu menu-horizontal hidden px-1 lg:flex">
+              {NAV_ITEMS.map((item) => (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) => (isActive ? 'btn btn-ghost btn-active' : 'btn btn-ghost')}
+                  >
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+            <SiteSwitcher />
+            <AuthControls />
+          </div>
         </div>
-        <div className="flex-none">
-          <ul className="menu menu-horizontal px-1">
-            <li>
-              <NavLink
-                to="/"
-                end
-                className={({ isActive }) => (isActive ? 'btn btn-ghost btn-active' : 'btn btn-ghost')}
-              >
-                Übersicht
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/realtime"
-                className={({ isActive }) => (isActive ? 'btn btn-ghost btn-active' : 'btn btn-ghost')}
-              >
-                Echtzeit
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/events"
-                className={({ isActive }) => (isActive ? 'btn btn-ghost btn-active' : 'btn btn-ghost')}
-              >
-                Events
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/sites"
-                className={({ isActive }) => (isActive ? 'btn btn-ghost btn-active' : 'btn btn-ghost')}
-              >
-                Sites
-              </NavLink>
-            </li>
-          </ul>
-          <SiteSwitcher />
-          <AuthControls />
-        </div>
+        <main className="flex-1 p-4">
+          <Outlet />
+        </main>
       </div>
-      <main className="p-4">
-        <Outlet />
-      </main>
+      <div className="drawer-side text-base-content lg:hidden">
+        <label htmlFor="app-drawer" aria-label="Menü schließen" className="drawer-overlay" />
+        <ul className="menu min-h-full w-72 gap-1 bg-base-100 p-4">
+          {NAV_ITEMS.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                end={item.end}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) => (isActive ? 'menu-active' : '')}
+              >
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }

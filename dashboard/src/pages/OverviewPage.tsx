@@ -85,7 +85,8 @@ export function OverviewPage() {
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body">
             <h2 className="card-title">Top-Seiten</h2>
-            <table className="table table-sm">
+            <div className="overflow-x-auto">
+              <table className="table table-sm">
               <thead>
                 <tr>
                   <th>Seite</th>
@@ -102,14 +103,16 @@ export function OverviewPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </div>
 
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body">
             <h2 className="card-title">Top-Referrer</h2>
-            <table className="table table-sm">
+            <div className="overflow-x-auto">
+              <table className="table table-sm">
               <thead>
                 <tr>
                   <th>Referrer</th>
@@ -126,14 +129,16 @@ export function OverviewPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </div>
 
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body">
             <h2 className="card-title">Top-Events</h2>
-            <table className="table table-sm">
+            <div className="overflow-x-auto">
+              <table className="table table-sm">
               <thead>
                 <tr>
                   <th>Event</th>
@@ -148,7 +153,8 @@ export function OverviewPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </div>
       </div>

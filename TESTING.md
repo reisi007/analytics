@@ -35,7 +35,10 @@
   (Caddy :8081, mountet `dashboard/dist`).
 - `php`-Service läuft **migrations/seed nicht automatisch** → manuell: `docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force`.
 - Playwright: `npx playwright install --with-deps` dann `npx playwright test`. baseURL `http://localhost:8081`.
-- Specs: `00-tracking`, `auth`, `realtime`, `sites`, `sites-management`, `security`.
+- **Projekte:** `chromium` (Full HD **1920×1080**) und `mobile` (`devices['Pixel 7']`) — die **komplette Suite** läuft auf beiden Viewports.
+  `mobile.spec.ts` läuft nur im `mobile`-Projekt (Header-Hamburger, kein Horizontal-Scroll, Overlay-Close, Switcher/Logout).
+- **Nav-Klicks** laufen viewport-agnostisch über `helpers/SidebarHelper.ts` (Desktop: Direktklick; Mobile: Hamburger öffnen, dann klicken).
+- Specs: `00-tracking`, `auth`, `realtime`, `sites`, `sites-management`, `security`, `mobile`.
 - **Isolation:** Jede Spec legt eigene eindeutige Sites über `SiteHelper` an (`uniqueSite`, `*.e2e.local`) und räumt sie im
   `afterAll`-Teardown ab → **keine leere DB nötig**, Tests laufen parallel-sicher (`workers` 4 in CI / 2 lokal).
   Chromium nutzt `--host-resolver-rules=MAP *.e2e.local 127.0.0.1`, damit die Track-Seite unter der Test-Site
