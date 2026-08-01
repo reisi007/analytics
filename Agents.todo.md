@@ -69,6 +69,11 @@
 - [ ] **E2E-Teststabilität beobachten:** Mit Isolation + `retries: CI?1:0` + exakten Zähler-Assertions ist die Basis gesetzt.
       Wenn in CI weiter Flakes auftreten: Stale-Cache-Fälle (300s-Summary-/60s-Events-Cache) prüfen, `db_data_test`-Volume beachten.
 
+## 5. Nächste Integration: E2E-Tests mobile & desktop
+- [ ] **E2E-Abdeckung für Viewports:** Specs zusätzlich auf **Mobile** (z. B. `iPhone 13`/`Pixel 7`, 390×844) und **Desktop** (1280×720+) ausführen — Ziel: UI brüht nicht auf kleinen Viewports (Tabellen, Site-Dropdown, Stat-Cards, Header).
+- [ ] Playwright-Projektionen in `playwright.config.ts` (z. B. `projects` `mobile-chromium` + `desktop-chromium` oder `viewport`-Variation) ergänzen; nur neue/angepasste Specs auf Mobile, bestehende auf Desktop lassen.
+- [ ] Mobile-spezifische Layout-Brüche beheben (z. B. Overflow bei langen URLs, enges Dropdown, Stat-Grid), falls Tests rot werden.
+
 ## 4. UI-Features (2026-08-01)
 > Anwenderwunsch: (1) Default-Ansicht = **Alle Sites** (nicht automatisch erste/erkannte Site), (2) **Logo im Header**,
 > (3) **Favicon im Site-Dropdown** mit Fallback, wenn keines gefunden.
