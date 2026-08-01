@@ -1,9 +1,14 @@
 import type { Page } from '@playwright/test'
+import { AuthHelper } from './AuthHelper'
 
-export async function login(page: Page, email: string, password: string): Promise<void> {
-  await page.goto('/login')
-  await page.fill('input[type="email"]', email)
-  await page.fill('input[type="password"]', password)
-  await page.click('button[type="submit"]')
-  await page.waitForURL('/')
+/**
+ * Kompatibilitäts-Shim: alte Importe (`import { login } from '../helpers/login'`)
+ * laufen über den zentralen AuthHelper.
+ */
+export async function login(
+  page: Page,
+  email = 'admin@e2e.local',
+  password = 'password',
+): Promise<void> {
+  await new AuthHelper(page).login(email, password)
 }

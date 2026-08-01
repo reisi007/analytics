@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { login } from '../helpers/login'
+import { AuthHelper } from '../helpers/AuthHelper'
 
 test('site switcher lists all sites and "Alle Sites" aggregates', async ({ page }) => {
-  await login(page, 'admin@e2e.local', 'password')
+  await new AuthHelper(page).login()
 
   const switcher = page.getByLabel('Site auswählen')
   await expect(switcher).toContainText('Alle Sites')

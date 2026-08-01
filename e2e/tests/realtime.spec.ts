@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { login } from '../helpers/login'
+import { AuthHelper } from '../helpers/AuthHelper'
 
 test('realtime page shows live counters and the activity feed', async ({ page }) => {
-  await login(page, 'admin@e2e.local', 'password')
+  await new AuthHelper(page).login()
   await page.goto('/realtime')
 
   await expect(page.locator('.stat', { hasText: 'Seitenaufrufe' })).toBeVisible()

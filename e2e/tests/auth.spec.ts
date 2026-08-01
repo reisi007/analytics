@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
-import { login } from '../helpers/login'
+import { AuthHelper } from '../helpers/AuthHelper'
+import { ToastHelper } from '../helpers/ToastHelper'
 
 test('unauthenticated users are redirected to /login', async ({ page }) => {
   await page.goto('/')
@@ -8,14 +9,13 @@ test('unauthenticated users are redirected to /login', async ({ page }) => {
 })
 
 test('wrong password shows the error alert', async ({ page }) => {
-  await page.goto('/login')
-  await page.fill('input[type="email"]', 'admin@e2e.local')
-  await page.fill('input[type="password"]', 'wrong-password')
-  await page.click('button[type="submit"]')
-  await expect(page.locator('.alert-error')).toContainText('Login fehlgeschlagen')
+  const ok = await new AuthHelper(page).attemptLogin('admin@e2e.local', 'wrong-password')
+  expect(ok).toBe(false)
+
+  await new ToastHelper(page).expectToast('Login fehlgeschlagen')
 })
 
 test('correct credentials land on / and the site switcher contains "Alle Sites"', async ({ page }) => {
-  await login(page, 'admin@e2e.local', 'password')
+  await new AuthHelper(page).login('admin@e2e.local', 'password')
   await expect(page.getByLabel('Site auswählen')).toContainText('Alle Sites')
 })

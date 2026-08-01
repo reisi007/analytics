@@ -1,16 +1,26 @@
 import { expect, test } from '@playwright/test'
-import { login } from '../helpers/login'
+import { AuthHelper } from '../helpers/AuthHelper'
+import { NetworkHelper } from '../helpers/NetworkHelper'
 
 test('tracked pageview shows up in the overview stats', async ({ page }) => {
+  const network = new NetworkHelper(page)
+
+  const pageviewTrack = network.waitForTrack()
   await page.goto('/track-test.html')
   await page.waitForFunction(() => (window as any).__trackerLoaded === true)
+  await pageviewTrack
 
+  const eventTrack = network.waitForTrack()
   await page.click('#track-event')
-  await page.waitForTimeout(500)
+  await eventTrack
 
-  await login(page, 'admin@e2e.local', 'password')
-  await page.goto('/')
+  await new AuthHelper(page).login()
 
   const pageviews = page.locator('.stat', { hasText: 'Seitenaufrufe' }).locator('.stat-value')
-  await expect(pageviews).not.toHaveText('0')
+  const unique = page.locator('.stat', { hasText: 'Unique Besucher' }).locator('.stat-value')
+  const events = page.locator('.stat', { hasText: 'Events' }).locator('.stat-value')
+
+  await expect(pageviews).toHaveText('1')
+  await expect(unique).toHaveText('1')
+  await expect(events).toHaveText('1')
 })
