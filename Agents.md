@@ -21,7 +21,7 @@ DSGVO-konformes Webanalyse-System (Repo: `reisi007/analytics`, **real public** l
 - **Frontend:** React 19 + Vite 8 + TypeScript 7 + daisyUI 5 (SPA, via Caddy ausgeliefert), **pnpm**, Vitest 4, Tailwind 4
 - **Tests:** PHPUnit 12 + paratest (parallel), Playwright 1.62
 - **Tracking:** komprimiertes `tracker.js` wird **als Teil des Frontend-Builds** erzeugt (kein separates Repo-File)
-- **Domain-Detection:** Site wird **nicht** im JS konfiguriert — Server erkennt die Ziel-Domain über den **HTTP Referer** des Track-Requests
+- **Domain-Detection:** Site wird **nicht** im JS konfiguriert — Server erkennt die Ziel-Domain über den **HTTP Referer** des Track-Requests (`site` = Label, `aliases` = Hosts)
 - **Unique Visitor:** `session_hash = sha256(ip + user_agent + datum)` — keine IP-/Cookie-Speicherung
 - **Realtime:** SSE (`GET /ingest/stream`, Polling DB alle 2s)
 - **Report:** wöchentlich (Montag 9:00), Command `GenerateWeeklyReport`

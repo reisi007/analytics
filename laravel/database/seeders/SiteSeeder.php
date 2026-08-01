@@ -10,12 +10,12 @@ class SiteSeeder extends Seeder
     public function run(): void
     {
         $sites = [
-            'reisinger.pictures' => [
+            'Reisinger Pictures' => [
                 'reisinger.pictures',
                 'www.reisinger.pictures',
                 'stats.reisinger.pictures',
             ],
-            'all-the.rest' => [
+            'All The Rest' => [
                 'all-the.rest',
                 'www.all-the.rest',
                 'stats.all-the.rest',

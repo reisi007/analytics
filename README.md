@@ -238,11 +238,13 @@ Ein Dockerfile wird nur für Variante A benötigt — hier nicht.
 ## Sites verwalten
 
 Welche Domains Analytics aufzeichnen darf, steht in der DB-Tabelle `sites` (CORS-Whitelist). `/ingest/track`
-akzeptiert nur Referrer-Origins, deren Host dort eingetragen ist (sonst 403).
+akzeptiert nur Referrer-Origins, deren Host unter den `aliases` einer Site eingetragen ist (sonst 403).
+Der `site`-Name ist ein frei wählbares Label (z. B. „Mein Blog"); die tatsächlichen Hosts/Domains stehen in
+`aliases` — jede Track-Domain muss dort gelistet sein (der Apex inklusive).
 
 ```bash
-# Site hinzufügen (inkl. Aliase)
-php artisan sites:add example.de --aliases=blog.example.de,www.example.de
+# Site hinzufügen (Label + Host-Aliases)
+php artisan sites:add "Mein Blog" --aliases=blog.example.de,www.example.de
 
 # Liste aller Sites
 php artisan sites:list

@@ -27,4 +27,16 @@ describe('detectSite', () => {
     expect(detectSite('localhost', {})).toBe('localhost')
     expect(detectSite('example.com', {})).toBe('example.com')
   })
+
+  it('maps an alias to an arbitrary site label', () => {
+    const labeled: SitesConfig = {
+      'Mein Blog': ['blog.example.com', 'www.blog.example.com'],
+    }
+    expect(detectSite('blog.example.com', labeled)).toBe('Mein Blog')
+    expect(detectSite('www.blog.example.com', labeled)).toBe('Mein Blog')
+  })
+
+  it('treats the site label itself as no host (must be listed in aliases)', () => {
+    expect(detectSite('all-the.rest', config)).toBe('all-the.rest')
+  })
 })

@@ -84,12 +84,6 @@ class SiteDetector
         $map = [];
 
         foreach (Site::all() as $site) {
-            $normalized = static::normalize($site->site);
-
-            if ($normalized !== '') {
-                $map[$normalized] = $site->site;
-            }
-
             foreach ($site->aliases ?? [] as $alias) {
                 $normalizedAlias = static::normalize($alias);
 

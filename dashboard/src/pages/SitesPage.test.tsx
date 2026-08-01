@@ -100,7 +100,7 @@ describe('SitesPage', () => {
     expect(await screen.findByText('Site angelegt')).toBeInTheDocument()
   })
 
-  it('rejects an invalid site hostname with a toast and does not POST', async () => {
+  it('rejects an empty site name with a toast and does not POST', async () => {
     fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const provider = providerResponse(input)
       if (provider) return provider
@@ -113,14 +113,14 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'bad domain' } })
+    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: '    ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
 
-    expect(await screen.findByText('Ungültiger Hostname')).toBeInTheDocument()
+    expect(await screen.findByText('Name erforderlich')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
-  it('normalizes an uppercase scheme-prefixed hostname before submitting', async () => {
+  it('keeps an arbitrary site name verbatim and normalizes aliases', async () => {
     fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const provider = providerResponse(input)
       if (provider) return provider
@@ -138,13 +138,19 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'HTTPS://EXAMPLE.COM' } })
+    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: '  Mein Blog  ' } })
+    fireEvent.change(screen.getByLabelText('Aliases'), {
+      target: { value: '  HTTPS://WWW.EXAMPLE.COM  , blog.example.com' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
 
     await waitFor(() => {
       const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
       expect(post).toBeDefined()
-      expect(JSON.parse(String(post?.[1]?.body))).toEqual({ site: 'example.com', aliases: [] })
+      expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+        site: 'Mein Blog',
+        aliases: ['www.example.com', 'blog.example.com'],
+      })
     })
   })
 

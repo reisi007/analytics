@@ -7,7 +7,7 @@ export function detectSite(host: string, sitesConfig: SitesConfig): string {
     .replace(/^www\./, '')
     .replace(/:\d+$/, '')
   for (const [site, aliases] of Object.entries(sitesConfig)) {
-    if (normalized === site || aliases.includes(normalized)) {
+    if (aliases.includes(normalized)) {
       return site
     }
   }

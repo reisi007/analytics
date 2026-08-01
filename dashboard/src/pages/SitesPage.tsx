@@ -32,9 +32,9 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
   const [submitting, setSubmitting] = useState(false)
 
   const submit = async () => {
-    const site = normalizeHostname(siteName)
+    const site = siteName.trim()
     if (!site) {
-      toast.error('Ungültiger Hostname')
+      toast.error('Name erforderlich')
       return
     }
     const aliasesList = splitAliases(aliases)
@@ -66,7 +66,7 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
             type="text"
             value={siteName}
             onChange={(event) => setSiteName(event.target.value)}
-            placeholder="beispiel.de"
+            placeholder="z. B. Mein Blog"
             aria-label="Site-Name"
             className="input input-bordered w-full"
           />

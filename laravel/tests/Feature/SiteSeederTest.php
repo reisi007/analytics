@@ -15,17 +15,17 @@ class SiteSeederTest extends TestCase
     {
         $this->artisan('db:seed', ['--class' => SiteSeeder::class])->assertExitCode(0);
 
-        $this->assertDatabaseHas('sites', ['site' => 'reisinger.pictures']);
-        $this->assertDatabaseHas('sites', ['site' => 'all-the.rest']);
+        $this->assertDatabaseHas('sites', ['site' => 'Reisinger Pictures']);
+        $this->assertDatabaseHas('sites', ['site' => 'All The Rest']);
 
         $this->assertSame(
             ['reisinger.pictures', 'www.reisinger.pictures', 'stats.reisinger.pictures'],
-            Site::where('site', 'reisinger.pictures')->first()->aliases,
+            Site::where('site', 'Reisinger Pictures')->first()->aliases,
         );
 
         $this->assertSame(
             ['all-the.rest', 'www.all-the.rest', 'stats.all-the.rest'],
-            Site::where('site', 'all-the.rest')->first()->aliases,
+            Site::where('site', 'All The Rest')->first()->aliases,
         );
     }
 
