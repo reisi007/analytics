@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   php-tests:
     name: PHP tests
@@ -23,14 +27,14 @@ jobs:
           - 8028:8025
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # v2
         with:
           php-version: '8.5'
           extensions: pdo_sqlite, mbstring
-          coverage: none
+          coverage: xdebug
 
       - name: Install dependencies
         working-directory: laravel
@@ -44,22 +48,22 @@ jobs:
 
       - name: Run tests
         working-directory: laravel
-        run: php artisan test --parallel --processes=4
+        run: php artisan test --parallel --processes=4 --coverage --coverage-text
 
   frontend-tests:
     name: Frontend tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1  # v4
         with:
           version: 11.10.0
 
@@ -73,14 +77,14 @@ jobs:
 
       - name: Unit tests
         working-directory: dashboard
-        run: pnpm test:unit
+        run: pnpm test:coverage
 
       - name: Build
         working-directory: dashboard
         run: pnpm build
 
       - name: Upload tracker.js
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: tracker
           path: dashboard/dist/tracker.js
@@ -89,12 +93,14 @@ jobs:
   build-image:
     name: Build & push Docker image
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.tags.outputs.image-tag }}
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Compute image tags
         id: tags
@@ -103,21 +109,24 @@ jobs:
           IMAGE=ghcr.io/reisi007/analytics
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "tags=${IMAGE}:latest,${IMAGE}:test" >> "$GITHUB_OUTPUT"
+            echo "image-tag=test" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "tags=${IMAGE}:pr-${{ github.event.pull_request.number }},${IMAGE}:test" >> "$GITHUB_OUTPUT"
+            echo "tags=${IMAGE}:pr-${{ github.event.pull_request.number }}-test" >> "$GITHUB_OUTPUT"
+            echo "image-tag=pr-${{ github.event.pull_request.number }}-test" >> "$GITHUB_OUTPUT"
           else
-            echo "tags=${IMAGE}:${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "tags=${IMAGE}:${{ github.ref_name }},${IMAGE}:test" >> "$GITHUB_OUTPUT"
+            echo "image-tag=test" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25  # v5
         with:
           context: .
           file: docker/Dockerfile
@@ -133,22 +142,22 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1  # v4
         with:
           version: 11.10.0
 
@@ -161,11 +170,11 @@ jobs:
         run: pnpm build
 
       - name: Pull E2E image
-        run: docker pull ghcr.io/reisi007/analytics:test
+        run: docker pull ghcr.io/reisi007/analytics:${{ needs.build-image.outputs.image-tag }}
 
       - name: Start E2E stack
         env:
-          IMAGE_TAG: test
+          IMAGE_TAG: ${{ needs.build-image.outputs.image-tag }}
         run: docker compose -f docker-compose.test.yml up -d
 
       - name: Wait for web to be ready
@@ -190,8 +199,15 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: e2e
-        # TODO e2e: The Playwright test suite itself is implemented in the next step.
         run: npx playwright test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          if-no-files-found: ignore
 
       - name: Teardown E2E stack
         if: always()
@@ -206,18 +222,18 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           fetch-depth: 0
           fetch-tags: true
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1  # v4
         with:
           version: 11.10.0
 
@@ -234,7 +250,7 @@ jobs:
 
       - name: Generate changelog
         id: cliff
-        uses: orhun/git-cliff-action@v4
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5  # v4
         with:
           config: .git-cliff.toml
           args: --latest --strip header
@@ -242,7 +258,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
         with:
           tag_name: ${{ github.ref_name }}
           body_path: ${{ steps.cliff.outputs.changelog }}
