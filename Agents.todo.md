@@ -53,56 +53,75 @@
 
 ## 2. Audit: Security / Code Quality / Testabdeckung (2026-08-01)
 > Ergebnisse aus 4 parallelen Audit-Subagenten (Backend, Frontend, E2E/Pipeline, Testabdeckung).
-> Nur dokumentiert — **Umsetzung noch nicht gestartet**. Kritische Findings vor Umsetzung durch separaten Verifier bestätigen lassen (Zero-Failures-Policy).
+> **Umsetzung erfolgt** und am 2026-08-01 durch separaten Verifier bestätigt (Zero-Failures): Backend 71 Tests, Frontend 68 Tests + typecheck/lint/coverage/build, E2E 15 Tests, Compose config ×3, actionlint — alle grün.
 > Hinweis zu Referenzen: Der Produktions-Caddyfile-Block liegt im separaten **Caddyfile-Repo `reisi007/caddyfile`** (nicht in diesem Repo) — hier nur als Hinweis geführt.
 
-### P0 — Pipeline-Rot & Sicherheit
-- [ ] **Zeitzonen-Bug (macht CI nachts rot):** `from`/`to` werden im Backend in `Europe/Berlin` interpretiert (`ReportTime::parse`), das Dashboard berechnet sie in Browser-TZ → zwischen 22:00–24:00 UTC fällt `to` einen Tag zurück, Pageviews werden ausgeschlossen. Betroffene Tests (aktuell rot): `AuthTest::test_stats_with_token_returns_200`, `StatsTest::test_summary_is_cached`, E2E `00-tracking.spec`. Empfehlung: `from`/`to` als UTC-Kalendertage interpretieren oder Server liefert TZ. [Backend `StatsController.php`/`ReportTime.php` + Frontend `OverviewPage.tsx`]
-- [ ] **Rate-Limit für `POST /ingest/auth/login`** (und `/ingest/track`): `throttle` (z. B. `throttle:5,1` bzw. `120,1`), inkl. Test (6. Versuch → 429). Aktuell keinerlei Brute-Force-/Abuse-Schutz. [Backend `routes/api.php`]
-- [ ] **Admin-Seeder-Härtung:** bei fehlendem/leerem `ANALYTICS_ADMIN_PASSWORD` abbrechen (exit non-zero) statt Default `'password'`/leer; Gatekeeper-Startskript um Admin-Keys erweitern. [Backend `database/seeders/AdminUserSeeder.php` + `deployment/docker-compose.prod.yml`]
-- [ ] **`db:seed --force` bei jedem Deploy** setzt Admin-Passwort aus ENV zurück → `updateOrCreate` auf Mail statt Passwort-Neugenerierung. [Deployment-Stack `deployment/docker-compose.prod.yml`]
+### P0 — Pipeline-Rot & Sicherheit (alle erledigt)
+- [x] **Zeitzonen-Bug:** `from`/`to` werden jetzt als **UTC-Kalendertage** interpretiert (`ReportTime::parseUtc`, `StatsController`), Dashboard berechnet UTC (`OverviewPage`). Betroffene Tests grün. → entfernt nach Verifikation.
+- [x] **Rate-Limit login/track:** `throttle` via Named Rate-Limiter (Config `analytics.rate_limit`, ENV `THROTTLE_LOGIN`/`THROTTLE_TRACK`). **Lokaler Default 99999** (deaktiviert), reale Limits (5/120) in `.env.production` + als Portainer-ENV. `RateLimitTest` (6. Versuch → 429). → entfernt nach Verifikation.
+- [x] **Admin-Seeder-Härtung:** fehlende/leere `ANALYTICS_ADMIN_PASSWORD` → RuntimeException (exit non-zero); Gatekeeper in beiden prod-Compose-Files prüft zusätzlich `ANALYTICS_ADMIN_EMAIL/PASSWORD`. → entfernt nach Verifikation.
+- [x] **`db:seed --force`:** `AdminUserSeeder` nutzt `firstOrCreate` → Passwort wird **nur beim Anlegen** gesetzt, nicht bei jedem Deploy überschrieben. → entfernt nach Verifikation.
 
-### P1 — Security Backend
-- [ ] **`session_hash` härten:** `hash_hmac('sha256', …, app.key)` (Pepper) + Site in den Hash aufnehmen (sonst Cross-Site-Korrelation zwischen Sites, Offline-Bruteforce möglich). [Backend `TrackController.php`]
-- [ ] **SSE-Token aus URL:** vollmächtiges JWT (inkl. Sites-CRUD) liegt im Query-String von `/ingest/stream?token=…` (Leak in Logs/Proxies) → kurzlebiges, auf `/stream` gescopetes Token oder Cookie-basierte SSE-Auth. [Backend `routes/api.php` + Frontend `dashboard/src/pages/RealtimePage.tsx`]
-- [ ] `from`/`to`-Parameter validieren (`date_format:Y-m-d`) → 422 statt 500. [Backend `StatsController.php`]
-- [ ] `site`-Parameter validieren (Array-Typo-DoS: `?site[]=…` → 500) in Stream/Stats. [Backend `StreamController.php`, `StatsController.php`]
-- [ ] `trustProxies(at:'*')` auf Webnet/Caddy-Subnetz einschränken (IP-Spoofing für `session_hash`). [Backend `bootstrap/app.php`]
-- [ ] Event-`payload`-Größen-/Tiefenlimit. [Backend `TrackController.php`]
-- [ ] **CORS-Kontrakt:** ACAO-Echo inkl. Port (Dev-Fall `localhost:5173`); ACAO fehlt auf 422/500-Antworten. [Backend `TrackController.php`]
-- [ ] **`recentActivity` bei `site=null`:** `where('site', null)` matcht nichts → Events fehlen im „Alle Sites"-Realtime-Feed (realer Korrektheitsbug). `when($site, …)` verwenden. [Backend `StatsAggregator.php`]
-- [ ] Duplizierte Make-Webhook-Config-Keys zusammenführen. [Backend `CheckOAuthToken.php` vs. `GmailRestTransport.php`]
+### P1 — Security Backend (alle erledigt)
+- [x] **`session_hash` gehärtet:** `hash_hmac('sha256', "site|ip|ua|datum", app.key)` (Pepper) + Site im Hash. → entfernt nach Verifikation.
+- [x] **SSE-Token:** neuer Endpoint `POST /ingest/auth/stream-token` liefert kurzlebiges (TTL 1 min) Token mit Claim `scope=stream`; `/ingest/stream` akzeptiert nur noch Stream-Tokens (vollmächtiges JWT → 403). Frontend holt Token vor jedem Connect. → entfernt nach Verifikation.
+- [x] `from`/`to` validiert (`date_format:Y-m-d`) → 422 statt 500. → entfernt nach Verifikation.
+- [x] `site`-Parameter validiert (Array-Typo `?site[]=` → 422) in Stream/Stats. → entfernt nach Verifikation.
+- [x] `trustProxies` auf Webnet/Caddy-Subnetz + localhost eingeschränkt (ENV `TRUSTED_PROXIES`). → entfernt nach Verifikation.
+- [x] Event-`payload`-Limit: Tiefe ≤ 5, JSON ≤ 64 KiB → 422. → entfernt nach Verifikation.
+- [x] **CORS-Kontrakt:** ACAO-Echo inkl. Port (`TrackCors`-Middleware), ACAO auch auf 422; 403 weiterhin ohne ACAO. → entfernt nach Verifikation.
+- [x] **`recentActivity` bei `site=null`:** `when($site, …)` — Events erscheinen im „Alle Sites"-Realtime-Feed. → entfernt nach Verifikation.
+- [x] Make-Webhook-Config-Keys zusammengeführt auf `config('analytics.make.webhook_url/api_key')`. → entfernt nach Verifikation.
 
-### P1 — Security Frontend
-- [ ] **Server-Details aus Fehler-UI entfernen:** Stacktraces/Dateipfade (`exception`, `file`, `line`, `trace`) werden aktuell im Dashboard gerendert → nur `status`+`message` anzeigen. [Frontend `dashboard/src/components/ApiErrorAlert.tsx`, `dashboard/src/lib/api.ts`]
-- [ ] **SSE-Session-Ablauf:** 401 im SSE-`error`-Handler erkennen → Token clearen + `/login` (statt Endlos-Reconnect alle 3 s). [Frontend `dashboard/src/pages/RealtimePage.tsx`]
-- [ ] **Requests mit Timeout/AbortController** in `fetchJson`; Logout nicht von Netzwerk-Antwort abhängig. [Frontend `dashboard/src/lib/api.ts`, `dashboard/src/lib/auth.ts`]
-- [ ] **CSP für stats.\*-Domains** (`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'`) — Hinweis: Caddyfile-Block liegt im Caddyfile-Repo; stats.*-Block dort hat aktuell weder CSP noch `log off`. [Caddyfile-Repo]
-- [ ] `getUser(): any` → typisiertes `User`-Interface. [Frontend `dashboard/src/lib/auth.ts`]
-- [ ] Client-Validierung Sites/Aliases (Hostname-Format, Normalisierung, Länge). [Frontend `dashboard/src/pages/SitesPage.tsx`]
-- [ ] Optional: Tracker sendet vollen `document.referrer` (Query-Params/PII) → Query-String strippen. [Frontend `dashboard/src/tracker.ts`]
-- [ ] **ESLint fehlt komplett** (kein Script/Config) → `eslint` + `eslint-plugin-react-hooks` ergänzen. [Frontend `dashboard/package.json`]
-- [ ] `cache:'no-store'` bei authentifizierten GETs. [Frontend `dashboard/src/lib/api.ts`]
+### P1 — Security Frontend (bis auf CSP erledigt)
+- [x] **Server-Details aus Fehler-UI entfernt:** `ApiErrorDetails` nur `{ message }`; `ApiErrorAlert` zeigt nur Status+Message (keine Stacktraces/Dateipfade). → entfernt nach Verifikation.
+- [x] **SSE-Session-Ablauf:** 401 beim Stream-Token-Fetch → `fetchJson` cleart Token + Redirect `/login`; kein Endlos-Reconnect. → entfernt nach Verifikation.
+- [x] **Requests mit Timeout/AbortController** in `fetchJson` (15s) + `logout` (5s). → entfernt nach Verifikation.
+- [ ] **CSP für stats.\*-Domains** (`default-src 'self'; …`) — **im separaten Caddyfile-Repo** umsetzen (stats.*-Block hat dort weder CSP noch `log off`). Nicht in diesem Repo umsetzbar. [Caddyfile-Repo]
+- [x] `getUser()` typisiert (`User`-Interface), `App.tsx` ohne Cast. → entfernt nach Verifikation.
+- [x] Client-Validierung Sites/Aliases (Hostname-Format, Normalisierung, Länge). → entfernt nach Verifikation.
+- [x] Tracker sendet `document.referrer` nur `origin+pathname` (Query-Params/PII gestrippt). → entfernt nach Verifikation.
+- [x] **ESLint ergänzt** (`eslint.config.js`, `pnpm lint`, react-hooks; Babel-Parser-Stack wegen TS-7-Kompatibilität). → entfernt nach Verifikation.
+- [x] `cache: 'no-store'` bei authentifizierten GETs. → entfernt nach Verifikation.
 
 ### P1 — Testabdeckung (Security/Datenschutz)
-- [ ] **text/plain-Track-Pfad testen** (Raw-Body, `Content-Type: text/plain`, wie Tracker sendet) → 204 + DB-Zeile. Bisher testen alle Tests `postJson` (application/json) — Produktionspfad ungetestet. [Backend `TrackTest`]
-- [ ] Fehlender/leerer Referrer → 403 testen (aktuell nur unbekannter Host getestet). [Backend `TrackTest`]
-- [ ] **Datenschutz-Asserts:** Schema ohne `ip`-Spalte; gleiche IP+UA, anderer Tag → **anderer** `session_hash`; Token erscheint nicht in Fehler-Responses. [Backend-Tests]
-- [ ] **Frontend-401-Intercept** unit-testen (`fetchJson`-Branch: clearToken + Redirect zu `/login`). [Frontend `dashboard/src/lib/api.test.ts`]
-- [ ] Ungültiges JWT → 401 (Backend) testen. [Backend `AuthTest`]
-- [ ] WeeklyReport ohne `REPORT_EMAIL` → Exit-Failure testen. [Backend `WeeklyReportTest`]
-- [ ] Cache-TTL (events 60 s / realtime 15 s) assertieren (summary 300 s nur indirekt, flaky). [Backend `StatsTest`]
-- [ ] E2E: echter SSE-Push (Track → Stream-Ereignis) statt nur Seiten-Render. [E2E `realtime.spec`]
-- [ ] E2E: 403 unbekannter Referrer, 401 abgelaufenes Token, echte Mehr-Site-Aggregation (Werte), www→Apex, Event-UI-Anzeige. [E2E]
+- [x] **text/plain-Track-Pfad** getestet (Raw-Body, wie Tracker sendet) → 204 + DB-Zeile. → entfernt nach Verifikation.
+- [x] Fehlender/leerer Referrer → 403 getestet. → entfernt nach Verifikation.
+- [x] **Datenschutz-Asserts:** Schema ohne `ip`-Spalte; gleiche IP+UA, anderer Tag → anderer `session_hash`; Token erscheint nicht in Fehler-Responses. → entfernt nach Verifikation.
+- [x] **Frontend-401-Intercept** unit-getestet (`fetchJson`: clearToken + Redirect). → entfernt nach Verifikation.
+- [x] Ungültiges JWT → 401 (Backend) getestet. → entfernt nach Verifikation.
+- [x] WeeklyReport ohne `REPORT_EMAIL` → Exit-Failure. → entfernt nach Verifikation.
+- [x] Cache-TTL (events 60 s / realtime 15 s) assertiert. → entfernt nach Verifikation.
+- [ ] E2E: echter SSE-Push (Track → Stream-Ereignis) statt nur Seiten-Render. **Noch offen** — `realtime.spec` prüft weiterhin nur Render. [E2E `realtime.spec`]
+- [x] E2E: 403 unbekannter Referrer, 401 ungültiges Token, echte Mehr-Site-Aggregation (Werte), www→Apex, Event-UI-Anzeige (`security.spec`). → entfernt nach Verifikation.
 
-### P2 — Pipeline
-- [ ] **Release-E2E testet evtl. falsches Image:** `build-image` pusht bei `v*`-Tag nur `:v*`, E2E zieht `:test` des letzten Main-Pushes → bei Tag-Push ebenfalls `:test` (oder `:tag-test`) mit-pushen bzw. E2E zieht `:v*`. [`.github/workflows/ci.yml`]
-- [ ] **Kein `concurrency` + mutabler `:test`-Tag** → parallele Läufe racem; PR-spezifisches Image-Tag (z. B. `pr-N-test`) + `concurrency`-Group. [`.github/workflows/ci.yml`]
-- [ ] **Failure-Artefakte:** Playwright `html`-Reporter + `trace: 'retain-on-failure'` + Upload des Reports bei `failure()` (aktuell nur `reporter:'list'`, keine Screenshots/Traces). [E2E `playwright.config.ts`, `.github/workflows/ci.yml`]
-- [ ] **Coverage-Tracking:** PHPUnit `--coverage` + Vitest `coverage` + Untergrenzen (aktuell `coverage: none`). [`.github/workflows/ci.yml`, `vite.config.ts`]
-- [ ] **Branch-Protection für main** (required status checks: `php-tests`, `frontend-tests`, `e2e-tests`) — aktuell keine Protection, rote Commits landen auf main. [GitHub-Repo-Einstellungen]
-- [ ] README-E2E-Anleitung fixen: `docker-compose.test.yml` liegt im **Repo-Root**, nicht in `laravel/`. [README.md]
-- [ ] Repo-Doku „privat" vs. real **public** klären (GitHub-API `visibility: public`; AGENTS.md/README sagen „privat") — Security-Posture prüfen. [Doku/Repo]
-- [ ] Lokale E2E deterministisch: `down -v` in README + exakte Zähler-Assertions statt „≠ 0" (persistentes `db_data_test`-Volume maskiert Regressionen). [README.md, E2E `00-tracking.spec`]
-- [ ] Actions auf **SHA pinnen** (Supply-Chain; aktuell nur Major-Tags). [`.github/workflows/ci.yml`]
-- [ ] Stale TODO-Kommentar in `ci.yml` (E2E-Suite ist implementiert) entfernen. [`.github/workflows/ci.yml`]
+### P2 — Pipeline (bis auf Branch-Protection erledigt)
+- [x] **Release-E2E-Image:** `build-image` liefert `image-tag`-Output; E2E-Job zieht passendes Tag (PR `pr-N-test`, sonst `test`), Tag-Push pusht `:test` mit. → entfernt nach Verifikation.
+- [x] **`concurrency`** (per-Ref, cancel-in-progress) + PR-spezifische Image-Tags (kein mutabler `:test`-Race). → entfernt nach Verifikation.
+- [x] **Failure-Artefakte:** Playwright `html`-Reporter + `trace: retain-on-failure` + `screenshot: only-on-failure` + Upload bei `failure()`. → entfernt nach Verifikation.
+- [x] **Coverage:** PHPUnit `--coverage` (CI: xdebug) + Vitest `--coverage` (v8) mit Untergrenzen (60/50/40/60; lokal 91 %). → entfernt nach Verifikation. Hinweis: PHP-Coverage-Driver lokal nicht verfügbar (Herd ohne xdebug) — CI installiert ihn.
+- [ ] **Branch-Protection für main** (required status checks `php-tests`, `frontend-tests`, `e2e-tests`) — **GitHub-Repo-Einstellung**, nicht per Datei; in README dokumentiert, Umsetzung via `gh` noch offen.
+- [x] README-E2E-Anleitung gefixt (`docker-compose.test.yml` im **Repo-Root**). → entfernt nach Verifikation.
+- [x] Repo-Doku: README auf real **public**/„Monorepo" korrigiert (kein Repo-Visibility-Change). → entfernt nach Verifikation.
+- [x] Lokale E2E deterministisch: `down -v` in README + exakte Zähler-Assertions (00-tracking 1/1). → entfernt nach Verifikation.
+- [x] Actions auf **SHA gepinnt** (alle via `gh api` verifiziert, Versions-Kommentar). → entfernt nach Verifikation.
+- [x] Stale TODO-Kommentar in `ci.yml` entfernt. → entfernt nach Verifikation.
+
+### E2E-Helper (Neu, erledigt)
+- [x] **Zentrale E2E-Helper** nach Portal-Muster (`e2e/helpers/`: `AuthHelper`, `ToastHelper`, `NetworkHelper`, `SiteHelper`) — Specs nutzen Helper statt eigenem Inline-Setup/Cleanup; Site-Management via API + zentralem `teardown()`. Verifiziert (15/15 grün, kein Leftover). → entfernt nach Verifikation.
+
+## 3. E2E-Test-Verbesserungen (Need dokumentiert)
+> **Grundsatz (aus Gespräch, 2026-08-01):** Wegen Testinstabilität legt **nicht jeder E2E-Test seine eigene Seite/Site
+> an und löscht sie wieder** — das Muster „create → test → delete" pro Spec macht Tests flaky und hinterlässt Leftover.
+> Stattdessen: zentrale Helper in `e2e/helpers/` (Portal-Muster) für Login/Toast/API-Warten/Site-Management;
+> Setup + Cleanup zentral (z. B. `test.beforeAll`/`test.afterAll` mit `SiteHelper.teardown()`).
+> Umsetzung erfolgt (Abschnitt 2, E2E-Helper). Weiterer Bedarf:
+
+- [ ] **E2E: echter SSE-Push testen** — `realtime.spec` prüft aktuell nur das statische Render der Realtime-Seite
+      (Counter + Feed sichtbar). Es fehlt ein Test, der einen Track-Request sendet und prüft, dass das Ereignis über
+      den SSE-Stream (`/ingest/stream`) im Realtime-Feed erscheint. [E2E `realtime.spec`]
+- [ ] **E2E-Teststabilität beobachten:** Mit den neuen Helpern + `retries: CI?1:0` + `workers: 1` + `down -v`-Determinismus
+      ist die Basis gesetzt. Wenn in CI weiter Flakes auftreten: exakte Zähler-Assertions prüfen, Stale-Cache-Fälle
+      (300s-Summary-/60s-Events-Cache) berücksichtigen, parallele Specs seriell halten, `db_data_test`-Volume beachten.
+- [ ] **E2E mit voller Abdeckung der neuen Backend-Verträge:** Stream-Token-403 (volles JWT am `/stream`) ist Backend-getestet;
+      optional als E2E-Assert ergänzen. [E2E `security.spec`]

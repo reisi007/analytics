@@ -1,7 +1,11 @@
+<p align="center">
+  <img src="dashboard/public/favicon.svg" alt="Analytics Logo" width="120" />
+</p>
+
 # Analytics
 
 DSGVO-konformes Webanalyse-System für die Domains `reisinger.pictures` und `all-the.rest`.
-Privates Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter Tracker und E2E-Tests.
+Monorepo: Laravel-Backend (API), React-SPA (Dashboard), komprimierter Tracker und E2E-Tests.
 
 ## Überblick
 
@@ -109,20 +113,25 @@ composer install && cp .env.example .env && php artisan key:generate
 php artisan test
 php artisan test --parallel --processes=4
 
-# Backend-Tests mit Mailpit (E-Mail-Tests, Test-Mailpit auf :1028/:8028)
+# Backend-Tests mit Mailpit (E-Mail-Tests, Test-Mailpit auf :1028/:8028) — vom Repo-Root aus
+cd ..
 docker compose -f docker-compose.test.yml up -d mailpit
 
 # Frontend
 cd dashboard
 pnpm install
 pnpm typecheck
-pnpm test:unit
+pnpm test:coverage
 pnpm build
 
-# E2E (Playwright, Stack auf :8081)
-cd laravel && docker compose -f docker-compose.test.yml up -d
+# E2E (Playwright, Stack auf :8081) — docker-compose.test.yml liegt im Repo-Root
+# Vor jedem Lauf den Stack frisch aufsetzen (persistentes db_data_test-Volume,
+# sonst maskieren alte Daten Regressionen):
+cd ..
+docker compose -f docker-compose.test.yml down -v
+docker compose -f docker-compose.test.yml up -d
 docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force
-cd ../e2e && npx playwright install --with-deps && npx playwright test
+cd e2e && npx playwright install --with-deps && npx playwright test
 ```
 
 ## CI/CD
@@ -131,11 +140,14 @@ GitHub Actions (`.github/workflows/ci.yml`) auf jedem Push/PR:
 
 | Job | Aufgabe |
 |---|---|
-| `php-tests` | PHPUnit (parallel, `--processes=4`), Mailpit-Service auf :1028/:8028 |
-| `frontend-tests` | Typecheck, Vitest-Unit-Tests, Produktions-Build |
-| `build-image` | Baut das Laravel-Image nach `ghcr.io/reisi007/analytics` (main → `latest`/`test`, PR → `pr-N`/`test`, sonst Branch-Name) |
-| `e2e-tests` | Playwright gegen den `test`-Stack (hängt an `build-image`) |
+| `php-tests` | PHPUnit (parallel, `--processes=4`) inkl. Coverage (`--coverage`), Mailpit-Service auf :1028/:8028 |
+| `frontend-tests` | Typecheck, Vitest-Unit-Tests inkl. Coverage (`pnpm test:coverage`), Produktions-Build |
+| `build-image` | Baut das Laravel-Image nach `ghcr.io/reisi007/analytics` und gibt den `image-tag`-Output aus (main → `latest`/`test`, PR → `pr-N-test`, Tag/Branch → `<ref>`/`test`) |
+| `e2e-tests` | Playwright gegen den vom `build-image` gebauten `image-tag`-Stack (hängt an `build-image`), Report-Upload bei Fehlern |
 | `release` | Nur bei `v*`-Tag-Push: git-cliff-Changelog (`--latest`), GitHub-Release mit `dashboard-release.zip` |
+
+**Empfohlen (Branch-Protection):** Für `main` sollte im Repo eine Branch-Protection mit den required status checks
+`php-tests`, `frontend-tests` und `e2e-tests` eingerichtet werden, damit Merges nur mit grüner Pipeline möglich sind.
 
 ## Deployment (Portainer)
 

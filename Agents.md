@@ -48,6 +48,9 @@ Details → `ARCHITECTURE.md`. Verifikation → `TESTING.md`.
   | Mailpit Web/API | 8027 | 8028 |
   | E2E-Web | – | 8081 |
 - **Library-Versionen:** aktuelle stabile Versionen (Stand 2026-07): Laravel 13.23, PHP 8.5, Postgres 18, React 19.2, Vite 8, TS 7, Vitest 4, Tailwind 4, daisyUI 5, Playwright 1.62, pnpm 11, Composer 2.10. Beim Setup die neuesten verwenden.
+- **Produktion über ENV-Variablen, nicht über .env:** Produktive Konfiguration wird ausschließlich über **ENV-Variablen** gesteuert (Portainer-Stack / Container-ENV). Nichts Produktionsrelevantes wird über eine `.env`-Datei geregelt. Lokale Defaults sind bewusst locker (z. B. Rate-Limits `THROTTLE_LOGIN`/`THROTTLE_TRACK` Default `99999` = deaktiviert); die realen Limits stehen in `.env.production` (Referenz) bzw. als Portainer-ENV. Neue konfigurierbare Werte: immer via `env()`/Config lesen, `.env.production`-Referenz pflegen.
+- **E2E-Retry nur in CI:** Playwright-`retries` nur in CI (1), nie lokal (`retries: process.env.CI ? 1 : 0`).
+- **E2E-Helper statt Inline-Setup:** E2E-Tests legen keine eigenen Sites/Seiten an und löschen sie nicht selbst — dafür gibt es zentrale Helper in `e2e/helpers/` (Vorbild: `portal.reisinger.pictures`-E2E-Helper). Tests nutzen Helper (Login, Toast, Site-Management) statt eigenem Setup/Cleanup (Testinstabilität vermeiden).
 - **Gelöste Todos:** werden aus `Agents.todo.md` **entfernt**, sobald sie **verifiziert** sind (Implementierer ≠ Verifizierer). Nicht verifizierte, aber umgesetzte Todos werden **abgehakt** (`[x]`).
 
 ## Status / Fortschritt
