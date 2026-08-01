@@ -4,16 +4,24 @@ import { useSite } from '../context/SiteContext'
 import { useToast } from '../context/ToastContext'
 import { createSite, deleteSite, fetchSitesAll, updateSite, type SiteRow } from '../lib/api'
 
-function formatDate(value: string): string {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+const HOSTNAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/
+
+function normalizeHostname(value: string): string | null {
+  const cleaned = value.trim().toLowerCase().replace(/^https?:\/\//, '')
+  if (cleaned.length === 0 || cleaned.length > 253) return null
+  return HOSTNAME_PATTERN.test(cleaned) ? cleaned : null
 }
 
 function splitAliases(value: string): string[] {
   return value
     .split(',')
-    .map((part) => part.trim())
+    .map((part) => normalizeHostname(part) ?? '')
     .filter((part) => part.length > 0)
+}
+
+function formatDate(value: string): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
 }
 
 function SiteForm({ onCreated }: { onCreated: () => void }) {
@@ -24,11 +32,19 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
   const [submitting, setSubmitting] = useState(false)
 
   const submit = async () => {
-    const trimmed = siteName.trim()
-    if (!trimmed) return
+    const site = normalizeHostname(siteName)
+    if (!site) {
+      toast.error('Ungültiger Hostname')
+      return
+    }
+    const aliasesList = splitAliases(aliases)
+    if (aliasesList.length === 0 && aliases.trim().length > 0) {
+      toast.error('Alle Aliases sind ungültig')
+      return
+    }
     setSubmitting(true)
     try {
-      await createSite({ site: trimmed, aliases: splitAliases(aliases) })
+      await createSite({ site, aliases: aliasesList })
       toast.success('Site angelegt')
       setSiteName('')
       setAliases('')
@@ -85,9 +101,14 @@ function EditModal({ row, onClose, onSaved }: { row: SiteRow | null; onClose: ()
 
   const save = async () => {
     if (!row) return
+    const aliasesList = splitAliases(aliases)
+    if (aliasesList.length === 0 && aliases.trim().length > 0) {
+      toast.error('Alle Aliases sind ungültig')
+      return
+    }
     setSubmitting(true)
     try {
-      await updateSite(row.id, { aliases: splitAliases(aliases) })
+      await updateSite(row.id, { aliases: aliasesList })
       toast.success('Site aktualisiert')
       refresh()
       onSaved()

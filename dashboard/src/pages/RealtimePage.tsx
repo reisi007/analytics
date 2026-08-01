@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { StatCard } from '../components/StatCard'
 import { useSite } from '../context/SiteContext'
-import type { Realtime, RecentActivity } from '../lib/api'
-import { getToken } from '../lib/auth'
+import { ApiError, fetchStreamToken, type Realtime, type RecentActivity } from '../lib/api'
 
 interface StreamSnapshot {
   type: 'snapshot'
@@ -39,10 +38,27 @@ export function RealtimePage() {
     let source: EventSource | null = null
     let disposed = false
 
-    const connect = () => {
+    const connect = async () => {
       if (disposed) return
       setError(null)
-      const params = new URLSearchParams({ token: getToken() ?? '' })
+
+      let streamToken: string
+      try {
+        const { token } = await fetchStreamToken()
+        if (disposed) return
+        streamToken = token
+      } catch (err) {
+        if (disposed) return
+        setConnected(false)
+        if (err instanceof ApiError && err.status === 401) {
+          return
+        }
+        setError('Verbindung getrennt – erneuter Versuch in 3s…')
+        retryTimer.current = setTimeout(() => void connect(), 3000)
+        return
+      }
+
+      const params = new URLSearchParams({ token: streamToken })
       if (site) params.set('site', site)
       source = new EventSource(`/ingest/stream?${params.toString()}`)
       source.addEventListener('open', () => setConnected(true))
@@ -71,11 +87,11 @@ export function RealtimePage() {
         source?.close()
         setConnected(false)
         setError('Verbindung getrennt – erneuter Versuch in 3s…')
-        retryTimer.current = setTimeout(connect, 3000)
+        retryTimer.current = setTimeout(() => void connect(), 3000)
       })
     }
 
-    connect()
+    void connect()
 
     return () => {
       disposed = true

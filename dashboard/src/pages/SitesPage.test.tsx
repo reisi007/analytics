@@ -100,6 +100,75 @@ describe('SitesPage', () => {
     expect(await screen.findByText('Site angelegt')).toBeInTheDocument()
   })
 
+  it('rejects an invalid site hostname with a toast and does not POST', async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const provider = providerResponse(input)
+      if (provider) return provider
+      if (String(input) === '/ingest/sites' && (init?.method ?? 'GET') === 'GET') {
+        return Promise.resolve({ ok: true, status: 200, json: async () => sitesFixture })
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({}) })
+    })
+    renderPage()
+
+    await screen.findAllByText('reisinger.pictures')
+
+    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'bad domain' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+
+    expect(await screen.findByText('Ungültiger Hostname')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
+  })
+
+  it('normalizes an uppercase scheme-prefixed hostname before submitting', async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const provider = providerResponse(input)
+      if (provider) return provider
+      const url = String(input)
+      const method = init?.method ?? 'GET'
+      if (url === '/ingest/sites' && method === 'POST') {
+        return Promise.resolve({ ok: true, status: 201, json: async () => sitesFixture[0] })
+      }
+      if (url === '/ingest/sites' && method === 'GET') {
+        return Promise.resolve({ ok: true, status: 200, json: async () => sitesFixture })
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({}) })
+    })
+    renderPage()
+
+    await screen.findAllByText('reisinger.pictures')
+
+    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'HTTPS://EXAMPLE.COM' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
+      expect(post).toBeDefined()
+      expect(JSON.parse(String(post?.[1]?.body))).toEqual({ site: 'example.com', aliases: [] })
+    })
+  })
+
+  it('rejects a submit where every alias is invalid with a toast and does not POST', async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const provider = providerResponse(input)
+      if (provider) return provider
+      if (String(input) === '/ingest/sites' && (init?.method ?? 'GET') === 'GET') {
+        return Promise.resolve({ ok: true, status: 200, json: async () => sitesFixture })
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({}) })
+    })
+    renderPage()
+
+    await screen.findAllByText('reisinger.pictures')
+
+    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'example.com' } })
+    fireEvent.change(screen.getByLabelText('Aliases'), { target: { value: 'not a host, also_bad' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+
+    expect(await screen.findByText('Alle Aliases sind ungültig')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
+  })
+
   it('edits aliases via the modal', async () => {
     fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const provider = providerResponse(input)

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { resolveApiBase, sendTrack } from './tracker'
+import { pageviewData, resolveApiBase, sendTrack } from './tracker'
 
 describe('tracker', () => {
   const fetchMock = vi.fn()
@@ -55,6 +55,29 @@ describe('tracker', () => {
           body: JSON.stringify({ type: 'event', name: 'click', url: '/' }),
         }),
       )
+    })
+  })
+
+  describe('pageviewData', () => {
+    it('strips the query string and hash from the referrer', () => {
+      Object.defineProperty(document, 'referrer', {
+        configurable: true,
+        value: 'https://ref.example/page?utm_source=newsletter#fragment',
+      })
+      vi.stubGlobal('location', { pathname: '/blog', search: '?page=2' })
+
+      const data = pageviewData()
+
+      expect(data.referrer).toBe('https://ref.example/page')
+      expect(data.url).toBe('/blog?page=2')
+    })
+
+    it('returns an empty referrer when document.referrer is empty or not parseable', () => {
+      Object.defineProperty(document, 'referrer', { configurable: true, value: 'not a url' })
+      expect(pageviewData().referrer).toBe('')
+
+      Object.defineProperty(document, 'referrer', { configurable: true, value: '' })
+      expect(pageviewData().referrer).toBe('')
     })
   })
 })

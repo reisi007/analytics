@@ -15,17 +15,16 @@ describe('ApiErrorAlert', () => {
     expect(screen.getByText('Request fehlgeschlagen: 500')).toBeInTheDocument()
   })
 
-  it('shows Laravel exception details with location', () => {
+  it('shows only the message without server internals', () => {
     const details: ApiErrorDetails = {
       message: 'Route [login] not defined.',
-      exception: 'Symfony\\Component\\Routing\\Exception\\RouteNotFoundException',
-      file: '/srv/analytics/routes/api.php',
-      line: 42,
-      trace: [{ function: 'route' }],
     }
     render(<ApiErrorAlert error={new ApiError(500, details)} />)
-    expect(screen.getByText(/RouteNotFoundException/)).toBeInTheDocument()
-    expect(screen.getByText(/routes\/api\.php:42/)).toBeInTheDocument()
+    expect(screen.getByText('Route [login] not defined.')).toBeInTheDocument()
+    expect(screen.getByText('500')).toBeInTheDocument()
+    expect(screen.queryByText(/RouteNotFoundException/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/routes\/api\.php/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('details')).not.toBeInTheDocument()
   })
 
   it('renders nothing when error is null', () => {

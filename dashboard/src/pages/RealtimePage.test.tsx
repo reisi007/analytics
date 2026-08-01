@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RealtimePage } from './RealtimePage'
@@ -31,28 +31,41 @@ class MockEventSource {
   }
 }
 
+const streamTokenResponse = async (input: RequestInfo | URL, init?: RequestInit) => {
+  if (String(input) === '/ingest/auth/stream-token' && init?.method === 'POST') {
+    return { ok: true, status: 200, json: async () => ({ token: 'stream-token' }) }
+  }
+  return { ok: true, status: 200, json: async () => ({}) }
+}
+
 describe('RealtimePage', () => {
+  const fetchMock = vi.fn()
+
   beforeEach(() => {
     localStorage.clear()
     localStorage.setItem('analytics_token', 'test')
     MockEventSource.instances = []
+    fetchMock.mockReset()
+    fetchMock.mockImplementation(streamTokenResponse)
+    vi.stubGlobal('fetch', fetchMock)
     vi.stubGlobal('EventSource', MockEventSource)
-    vi.stubGlobal('fetch', vi.fn())
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
   })
 
-  it('opens an SSE stream for the current site with the auth token', () => {
+  it('fetches a stream token and opens an SSE stream for the current site with it', async () => {
     render(
       <MemoryRouter>
         <RealtimePage />
       </MemoryRouter>,
     )
-    expect(MockEventSource.instances).toHaveLength(1)
+    await waitFor(() => expect(MockEventSource.instances).toHaveLength(1))
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/ingest/auth/stream-token')
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
     expect(MockEventSource.instances[0].url).toContain('/ingest/stream?')
-    expect(MockEventSource.instances[0].url).toContain('token=test')
+    expect(MockEventSource.instances[0].url).toContain('token=stream-token')
     expect(MockEventSource.instances[0].url).toContain('site=')
   })
 
@@ -62,6 +75,7 @@ describe('RealtimePage', () => {
         <RealtimePage />
       </MemoryRouter>,
     )
+    await waitFor(() => expect(MockEventSource.instances).toHaveLength(1))
     const source = MockEventSource.instances.at(-1)!
 
     source.emit('message', {
@@ -92,6 +106,7 @@ describe('RealtimePage', () => {
         <RealtimePage />
       </MemoryRouter>,
     )
+    await waitFor(() => expect(MockEventSource.instances).toHaveLength(1))
     const source = MockEventSource.instances.at(-1)!
 
     source.emit('message', {
@@ -118,17 +133,46 @@ describe('RealtimePage', () => {
           <RealtimePage />
         </MemoryRouter>,
       )
+      await act(async () => {})
       const first = MockEventSource.instances.at(-1)!
       first.emit('error')
 
-      vi.advanceTimersByTime(3000)
+      await act(async () => {
+        vi.advanceTimersByTime(3000)
+      })
+      await act(async () => {})
 
       expect(MockEventSource.instances).toHaveLength(2)
       expect(MockEventSource.instances[0].closed).toBe(true)
       expect(MockEventSource.instances[1].url).toContain('/ingest/stream?')
-      expect(MockEventSource.instances[1].url).toContain('token=test')
+      expect(MockEventSource.instances[1].url).toContain('token=stream-token')
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it('does not reconnect and redirects to /login when the stream-token request returns 401', async () => {
+    const assign = vi.fn()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: { pathname: '/realtime', assign },
+    })
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: async () => ({ message: 'Unauthenticated.' }),
+    })
+
+    render(
+      <MemoryRouter>
+        <RealtimePage />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('/login'))
+    expect(localStorage.getItem('analytics_token')).toBeNull()
+    expect(MockEventSource.instances).toHaveLength(0)
   })
 })

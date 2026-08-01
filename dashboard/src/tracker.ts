@@ -47,12 +47,23 @@ export function sendTrack(apiBase: string, data: TrackData): void {
   }).catch(() => {})
 }
 
+function safeReferrer(): string {
+  const raw = document.referrer
+  if (!raw) return ''
+  try {
+    const url = new URL(raw)
+    return url.origin + url.pathname
+  } catch {
+    return ''
+  }
+}
+
 export function pageviewData(): TrackData {
   return {
     type: 'pageview',
     url: location.pathname + location.search,
     title: document.title,
-    referrer: document.referrer,
+    referrer: safeReferrer(),
     screen: { width: screen.width, height: screen.height },
     lang: navigator.language,
   }

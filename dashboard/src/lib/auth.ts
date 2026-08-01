@@ -28,17 +28,23 @@ export function clearToken(): void {
   notifyAuthChange()
 }
 
-export function getUser(): any | null {
+export interface User {
+  id: number
+  name: string
+  email: string
+}
+
+export function getUser(): User | null {
   const raw = localStorage.getItem(USER_KEY)
   if (!raw) return null
   try {
-    return JSON.parse(raw)
+    return JSON.parse(raw) as User
   } catch {
     return null
   }
 }
 
-export function setUser(user: unknown): void {
+export function setUser(user: User): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
@@ -61,7 +67,7 @@ export async function login(email: string, password: string): Promise<void> {
   }
   const json = (await response.json()) as { token?: string; user?: unknown }
   if (json.token) setToken(json.token)
-  if (json.user) setUser(json.user)
+  if (json.user) setUser(json.user as User)
 }
 
 export async function logout(): Promise<void> {
@@ -71,6 +77,7 @@ export async function logout(): Promise<void> {
       await fetch('/ingest/auth/logout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(5000),
       })
     } catch {}
   }

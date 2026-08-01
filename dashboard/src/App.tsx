@@ -41,7 +41,7 @@ function SiteSwitcher() {
 
 function AuthControls() {
   const navigate = useNavigate()
-  const user = getUser() as { email?: string } | null
+  const user = getUser()
 
   if (!isAuthenticated()) {
     return (

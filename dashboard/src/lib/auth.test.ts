@@ -12,15 +12,15 @@ describe('auth helpers', () => {
 
   it('stores and retrieves the token and user', () => {
     setToken('abc')
-    setUser({ id: 1, email: 'a@b.c' })
+    setUser({ id: 1, name: 'Admin', email: 'a@b.c' })
     expect(getToken()).toBe('abc')
     expect(isAuthenticated()).toBe(true)
-    expect(getUser()).toEqual({ id: 1, email: 'a@b.c' })
+    expect(getUser()).toEqual({ id: 1, name: 'Admin', email: 'a@b.c' })
   })
 
   it('clearToken and clearUser reset the session', () => {
     setToken('abc')
-    setUser({ id: 1 })
+    setUser({ id: 1, name: 'Admin', email: 'a@b.c' })
     clearToken()
     clearUser()
     expect(getToken()).toBeNull()
@@ -31,7 +31,7 @@ describe('auth helpers', () => {
   it('login stores token and user on success', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ token: 'jwt', user: { email: 'admin@example.com' } }),
+      json: async () => ({ token: 'jwt', user: { id: 1, name: 'Admin', email: 'admin@example.com' } }),
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -43,7 +43,7 @@ describe('auth helpers', () => {
       body: JSON.stringify({ email: 'admin@example.com', password: 'secret' }),
     })
     expect(getToken()).toBe('jwt')
-    expect(getUser()).toEqual({ email: 'admin@example.com' })
+    expect(getUser()).toEqual({ id: 1, name: 'Admin', email: 'admin@example.com' })
   })
 
   it('login throws and stores nothing on a non-2xx response', async () => {
@@ -65,6 +65,7 @@ describe('auth helpers', () => {
     expect(fetchMock).toHaveBeenCalledWith('/ingest/auth/logout', {
       method: 'POST',
       headers: { Authorization: 'Bearer jwt' },
+      signal: expect.any(AbortSignal),
     })
     expect(getToken()).toBeNull()
     expect(isAuthenticated()).toBe(false)

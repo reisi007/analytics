@@ -100,10 +100,6 @@ export interface Realtime {
 
 export interface ApiErrorDetails {
   message: string
-  exception?: string
-  file?: string
-  line?: number
-  trace?: unknown[]
 }
 
 export class ApiError extends Error {
@@ -118,31 +114,58 @@ export class ApiError extends Error {
   }
 }
 
+const REQUEST_TIMEOUT_MS = 15000
+
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const token = getToken()
   const headers = new Headers(headersFrom(init))
   headers.set('Accept', 'application/json')
-  if (token) headers.set('Authorization', `Bearer ${token}`)
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+    const method = (init?.method ?? 'GET').toUpperCase()
+    if (method === 'GET') headers.set('Cache-Control', 'no-store')
+  }
 
-  const response = await fetch(url, { ...init, headers })
+  const controller = new AbortController()
+  let timedOut = false
+  const timeout = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, REQUEST_TIMEOUT_MS)
+  const externalSignal = init?.signal
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort()
+    else externalSignal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
 
-  if (response.status === 401) {
-    clearToken()
-    clearUser()
-    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-      window.location.assign('/login')
+  try {
+    const response = await fetch(url, { ...init, headers, signal: controller.signal })
+
+    if (response.status === 401) {
+      clearToken()
+      clearUser()
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.assign('/login')
+      }
     }
-  }
 
-  if (!response.ok) {
-    throw await toApiError(response)
-  }
+    if (!response.ok) {
+      throw await toApiError(response)
+    }
 
-  if (response.status === 204) {
-    return undefined as T
-  }
+    if (response.status === 204) {
+      return undefined as T
+    }
 
-  return (await response.json()) as T
+    return (await response.json()) as T
+  } catch (error) {
+    if (timedOut) {
+      throw new ApiError(0, { message: 'Request timed out' })
+    }
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 async function toApiError(response: Response): Promise<ApiError> {
@@ -151,13 +174,7 @@ async function toApiError(response: Response): Promise<ApiError> {
     try {
       const body: unknown = JSON.parse(await response.text())
       if (isRecord(body) && typeof body.message === 'string') {
-        details = {
-          message: body.message,
-          exception: typeof body.exception === 'string' ? body.exception : undefined,
-          file: typeof body.file === 'string' ? body.file : undefined,
-          line: typeof body.line === 'number' ? body.line : undefined,
-          trace: Array.isArray(body.trace) ? body.trace : undefined,
-        }
+        details = { message: body.message }
       }
     } catch {
       // body was not JSON — fall back to the generic message
@@ -266,4 +283,12 @@ export function updateSite(id: number, input: Pick<SiteInput, 'aliases'>): Promi
 export function deleteSite(id: number, deleteData: boolean): Promise<void> {
   const query = deleteData ? '?delete_data=1' : ''
   return fetchJson<void>(`/ingest/sites/${id}${query}`, { method: 'DELETE' })
+}
+
+export interface StreamToken {
+  token: string
+}
+
+export function fetchStreamToken(): Promise<StreamToken> {
+  return fetchJson<StreamToken>('/ingest/auth/stream-token', { method: 'POST' })
 }

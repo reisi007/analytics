@@ -6,6 +6,7 @@ import {
   fetchRealtime,
   fetchSites,
   fetchSitesConfig,
+  fetchStreamToken,
   fetchSummary,
 } from './api'
 
@@ -67,12 +68,62 @@ describe('api helpers', () => {
 
       expect(error).toBeInstanceOf(ApiError)
       expect(error.status).toBe(500)
-      expect(error.details?.message).toBe('Route [login] not defined.')
-      expect(error.details?.exception).toBe('Symfony\\Component\\Routing\\Exception\\RouteNotFoundException')
-      expect(error.details?.file).toBe('/srv/analytics/routes/api.php')
-      expect(error.details?.line).toBe(42)
-      expect(error.details?.trace).toHaveLength(1)
+      expect(error.details).toEqual({ message: 'Route [login] not defined.' })
       expect(error.message).toBe('Route [login] not defined.')
+    })
+
+    it('does not expose server internals from the error body', async () => {
+      const body = JSON.stringify({
+        message: 'kaputt',
+        exception: 'Symfony\\Component\\Routing\\Exception\\RouteNotFoundException',
+        file: '/srv/analytics/routes/api.php',
+        line: 42,
+        trace: [{ function: 'route' }],
+      })
+      fetchMock.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error', text: async () => body })
+
+      const error = (await fetchJson('/x').catch((err: unknown) => err)) as ApiError
+
+      expect(error.details).toEqual({ message: 'kaputt' })
+      expect(Object.keys(error.details ?? {})).toEqual(['message'])
+    })
+
+    it('throws an ApiError when the request times out', async () => {
+      vi.useFakeTimers()
+      try {
+        fetchMock.mockImplementation(
+          (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Promise((_resolve, reject) => {
+              init?.signal?.addEventListener('abort', () =>
+                reject(new DOMException('The operation was aborted.', 'AbortError')),
+              )
+            }),
+        )
+
+        const promise = fetchJson('/x')
+        const assertion = expect(promise).rejects.toMatchObject({ status: 0, message: 'Request timed out' })
+        await vi.advanceTimersByTimeAsync(15000)
+        await assertion
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('sets Cache-Control: no-store on authenticated GET requests', async () => {
+      localStorage.setItem('analytics_token', 'test-token')
+      fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
+
+      await fetchJson('/x')
+
+      expect(headersOf(0).get('Cache-Control')).toBe('no-store')
+    })
+
+    it('does not set Cache-Control without a token', async () => {
+      fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
+
+      await fetchJson('/x')
+
+      expect(headersOf(0).get('Cache-Control')).toBeNull()
     })
 
     it('attaches the Authorization header when a token is set', async () => {
@@ -157,6 +208,19 @@ describe('api helpers', () => {
       await expect(fetchSitesConfig()).resolves.toEqual({ 'reisinger.pictures': ['stats.reisinger.pictures'] })
 
       expect(urlOf(0)).toBe('/ingest/config/sites')
+      expect(headersOf(0).get('Authorization')).toBe('Bearer test-token')
+    })
+  })
+
+  describe('fetchStreamToken', () => {
+    it('POSTs to /ingest/auth/stream-token with the auth header and returns the token', async () => {
+      localStorage.setItem('analytics_token', 'test-token')
+      fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ token: 'stream-token' }) })
+
+      await expect(fetchStreamToken()).resolves.toEqual({ token: 'stream-token' })
+
+      expect(urlOf(0)).toBe('/ingest/auth/stream-token')
+      expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
       expect(headersOf(0).get('Authorization')).toBe('Bearer test-token')
     })
   })
