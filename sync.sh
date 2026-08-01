@@ -22,7 +22,7 @@ fi
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 mkdir -p "$STAGE/dashboard"
-cp "$DIST/tracker.js" "$STAGE/tracker.js"
+cp "$DIST/x7k2p.js" "$STAGE/x7k2p.js"
 cp -r "$DIST/"* "$STAGE/dashboard/"
 rm -f "$STAGE/dashboard/track-test.html"
 

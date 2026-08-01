@@ -12,7 +12,7 @@
 		}
 	}
 
-	handle /tracker.js {
+	handle /x7k2p.js {
 		root * /srv/dashboard
 		file_server
 	}

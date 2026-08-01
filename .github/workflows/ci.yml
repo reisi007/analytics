@@ -83,11 +83,11 @@ jobs:
         working-directory: dashboard
         run: pnpm build
 
-      - name: Upload tracker.js
+      - name: Upload tracker script
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: tracker
-          path: dashboard/dist/tracker.js
+          path: dashboard/dist/x7k2p.js
           if-no-files-found: error
 
   build-image:

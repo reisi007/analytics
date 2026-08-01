@@ -12,7 +12,7 @@ export default defineConfig({
       entry: resolve(root, 'src/tracker.ts'),
       name: 'AnalyticsTracker',
       formats: ['iife'],
-      fileName: () => 'tracker.js',
+      fileName: () => 'x7k2p.js',
     },
     minify: 'oxc',
     cssCodeSplit: false,

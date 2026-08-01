@@ -19,7 +19,7 @@ DSGVO-konformes Webanalyse-System für `reisinger.pictures` und `all-the.rest`. 
 Struktur:
 ```
 laravel/                  # Backend (reine API, kein Laravel-View)
-dashboard/                # React SPA + tracker.js-Build
+dashboard/                # React SPA + x7k2p.js-Tracker-Build
 e2e/                      # Playwright-E2E-Tests
 docker/Dockerfile         # Backend-Image (pdo_pgsql)
 docker-compose.local.yml  # Lokale Infra: Postgres :5433, Mailpit :1027/:8027
@@ -62,7 +62,7 @@ sync.sh                   # rclone-Deploy (portal-Modell)
   React via Vite-Dev (`pnpm dev`, Proxy `/ingest` → `https://tracking.test`, `changeOrigin`, `secure:false`).
 - **Keine Inline-Styles in React:** In JSX/TSX ausschließlich Tailwind-/daisyUI-Klassen; `style={{...}}` verboten.
 - **Frontend-Deploy:** SPA wird statisch von Caddy aus `/srv/websites/analytics/` ausgeliefert (Mount
-  `/home/webadmin/websites`). `tracker.js` entsteht als Teil des Frontend-Builds (`vite build` + `vite.tracker.config.ts`),
+  `/home/webadmin/websites`). `x7k2p.js` (Tracker-Skript, bewusst unauffälliger Name gegen Adblocker) entsteht als Teil des Frontend-Builds (`vite build` + `vite.tracker.config.ts`),
   kein separates Repo-File. Im CI wird `dashboard/dist` als `dashboard-release.zip` ins GitHub-Release gepackt.
 - **Gatekeeper:** Ohne `APP_KEY`/`JWT_SECRET` verweigert der Container im `production`-Modus den Start
   (`FATAL: APP_KEY/JWT_SECRET fehlt`; shell-check im Compose-`command`).
@@ -160,7 +160,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `pages/RealtimePage.tsx` | SSE-Client (`EventSource` mit `?token=`, Reconnect 3s, Feed) |
 | `pages/EventsPage.tsx`, `SitesPage.tsx`, `LoginPage.tsx` | Events-Liste, Sites-Verwaltung (Modals), Login |
 | `vite.config.ts` | Vite + Proxy `/ingest` + Vitest (jsdom) |
-| `vite.tracker.config.ts` | Eigener Build für `tracker.js` |
+| `vite.tracker.config.ts` | Eigener Build für `x7k2p.js` (Tracker, Anti-Adblock-Name) |
 
 ### E2E (`e2e/`)
 | Datei | Aufgabe |
@@ -177,7 +177,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `tests/sites.spec.ts` | Site-Switcher + „Alle Sites" (eigene Site) |
 | `tests/sites-management.spec.ts` | Sites-CRUD über UI (Add/Edit/Delete, mit/ohne Daten, eigene Sites) |
 | `tests/security.spec.ts` | 403/401, Stream-JWT-403, Mehr-Site-Aggregation (www→Apex), Events-Seite |
-| `Caddyfile.e2e` (Repo-Root) | Caddy für E2E (fastcgi → `php:9000`, `/tracker.js`, SPA-Fallback) |
+| `Caddyfile.e2e` (Repo-Root) | Caddy für E2E (fastcgi → `php:9000`, `/x7k2p.js`, SPA-Fallback) |
 
 **E2E-Isolation:** Jede Spec legt ihre eigenen eindeutigen Sites an (`SiteHelper.uniqueSite`) und räumt sie im
 `afterAll`-Teardown ab → Tests brauchen **keine leere DB** mehr und sind **parallel-sicher** (`workers` > 1).
@@ -186,7 +186,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | Job | Aufgabe |
 |---|---|
 | `php-tests` | PHPUnit parallel (`--processes=4`), Mailpit-Service auf :1028/:8028 |
-| `frontend-tests` | Typecheck, Vitest, Build, Upload `tracker.js` |
+| `frontend-tests` | Typecheck, Vitest, Build, Upload `x7k2p.js` |
 | `build-image` | Docker-Image nach GHCR (main→`latest`/`test`, PR→`pr-N`/`test`, sonst Branch) |
 | `e2e-tests` | Playwright gegen `test`-Stack (hängt an `build-image`, zieht `:test`) |
 | `release` | nur `v*`-Tags: git-cliff + GitHub-Release (`dashboard-release.zip`) |

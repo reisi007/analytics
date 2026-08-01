@@ -16,7 +16,7 @@ describe('tracker', () => {
 
   describe('resolveApiBase', () => {
     it('derives the API base from the tracker script origin', () => {
-      expect(resolveApiBase('https://stats.example.com/tracker.js', 'http://page.example')).toBe(
+      expect(resolveApiBase('https://stats.example.com/x7k2p.js', 'http://page.example')).toBe(
         'https://stats.example.com',
       )
     })

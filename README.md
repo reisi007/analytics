@@ -25,14 +25,14 @@ Monorepo (öffentliches GitHub-Repo `reisi007/analytics`): Laravel-Backend (API)
   `ghcr.io/reisi007/analytics` (php:8.5-fpm-alpine).
 - **Frontend:** React 19 + Vite 8 + TypeScript 7 + daisyUI 5. Wird **statisch** von Caddy aus
   `/srv/websites/analytics/` ausgeliefert (Server-Mount `/home/webadmin/websites`), `/ingest/*` wird von Caddy an
-  `analytics_php:9000` durchgereicht. `tracker.js` entsteht als Teil des Frontend-Builds.
+  `analytics_php:9000` durchgereicht. `x7k2p.js` (Tracker-Skript, bewusst unauffälliger Name gegen Adblocker) entsteht als Teil des Frontend-Builds.
 - **CI/CD:** GitHub Actions baut, testet und releast (siehe Abschnitt CI/CD). **Watchtower** hält das
   Backend-Image automatisch aktuell (Variante A); Backend- und Frontend-Updates laufen über `./sync.sh`
   (Variante B).
 - **Auth:** JWT (`tymon/jwt-auth`); `/ingest/stats/*` und `/ingest/stream` sind geschützt, `/ingest/track` bleibt öffentlich.
 
 ```
-Browser ── tracker.js ──► stats.*/ingest/track ──► Caddy ──► analytics_php:9000 (PHP-FPM)
+Browser ── x7k2p.js ──► stats.*/ingest/track ──► Caddy ──► analytics_php:9000 (PHP-FPM)
                                                         └────────► Postgres (analytics_db)
 Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ──► analytics_php:9000
 ```
@@ -42,7 +42,7 @@ Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ─�
 ```
 .
 ├── laravel/                  # Backend (Laravel 13 API)
-├── dashboard/                # Frontend (React SPA + tracker.js-Build)
+├── dashboard/                # Frontend (React SPA + x7k2p.js-Build)
 ├── e2e/                      # Playwright-E2E-Tests
 ├── docker/
 │   └── Dockerfile            # Backend-Image (php:8.5-fpm-alpine, pdo_pgsql)
@@ -201,7 +201,7 @@ Das Backend läuft als Portainer-Stack im Docker-Environment; das Frontend wird 
    prüfen (FastCGI-Proxy auf `analytics_php:9000`, `flush_interval -1` für SSE) und per `./sync.sh` deployen.
 4. **Backend & Frontend aktualisieren:** Lokal `./sync.sh` ausführen — rclone-synct das Backend (`laravel/`,
    ohne `vendor/`, `.env`, Tests und Storage-Caches) nach `/home/webadmin/websites/api-analytics.reisinger.pictures`
-   und das Frontend (`tracker.js` + `dashboard/`) nach `/home/webadmin/websites/analytics` (auf dem Server
+   und das Frontend (`x7k2p.js` + `dashboard/`) nach `/home/webadmin/websites/analytics` (auf dem Server
    erreichbar unter `/srv/websites/…`). `vendor/` erzeugt der `composer_init`-Service beim Stack-Start.
 5. **Watchtower (optional):** Ein Watchtower-Container hält das Backend-Image automatisch aktuell, z. B.:
 
@@ -221,7 +221,7 @@ Ein Dockerfile wird nur für Variante A benötigt — hier nicht.
 
 1. **Backend & Frontend hochladen:** Lokal `./sync.sh` ausführen — rclone-synct das Backend (`laravel/`, ohne
    `vendor/`, `.env`, Tests und Storage-Caches) nach `/home/webadmin/websites/api-analytics.reisinger.pictures`
-   und das Frontend (`tracker.js` + `dashboard/`) nach `/home/webadmin/websites/analytics`. `.env` wird bewusst
+   und das Frontend (`x7k2p.js` + `dashboard/`) nach `/home/webadmin/websites/analytics`. `.env` wird bewusst
    nicht hochgeladen — alle Secrets kommen über die Stack-ENV-Variablen (siehe unten); `vendor/` erzeugt der
    `composer_init`-Service beim Stack-Start.
 2. **Stack starten:** `deployment/docker-compose.prod.files.yml` als Portainer-Stack anlegen (oder
