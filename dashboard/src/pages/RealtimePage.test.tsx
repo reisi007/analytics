@@ -55,7 +55,7 @@ describe('RealtimePage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('fetches a stream token and opens an SSE stream for the current site with it', async () => {
+  it('fetches a stream token and opens an SSE stream for the all-sites default', async () => {
     render(
       <MemoryRouter>
         <RealtimePage />
@@ -66,7 +66,7 @@ describe('RealtimePage', () => {
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
     expect(MockEventSource.instances[0].url).toContain('/ingest/stream?')
     expect(MockEventSource.instances[0].url).toContain('token=stream-token')
-    expect(MockEventSource.instances[0].url).toContain('site=')
+    expect(MockEventSource.instances[0].url).not.toContain('site=')
   })
 
   it('updates counters from snapshot items and the feed from activity messages', async () => {
@@ -146,6 +146,61 @@ describe('RealtimePage', () => {
       expect(MockEventSource.instances[0].closed).toBe(true)
       expect(MockEventSource.instances[1].url).toContain('/ingest/stream?')
       expect(MockEventSource.instances[1].url).toContain('token=stream-token')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('resumes after reconnect via last ids and deduplicates feed entries', async () => {
+    vi.useFakeTimers()
+    try {
+      render(
+        <MemoryRouter>
+          <RealtimePage />
+        </MemoryRouter>,
+      )
+      await act(async () => {})
+      const first = MockEventSource.instances.at(-1)!
+
+      await act(async () => {
+        first.emit('message', {
+          id: 10,
+          type: 'pageview',
+          url: '/a',
+          title: 'A',
+          time: '2026-07-31T08:00:01Z',
+        })
+      })
+      expect(screen.getByText('/a')).toBeInTheDocument()
+
+      await act(async () => {
+        first.emit('error')
+        vi.advanceTimersByTime(3000)
+      })
+      await act(async () => {})
+
+      const second = MockEventSource.instances.at(-1)!
+      expect(second.url).toContain('last_pv_id=10')
+
+      await act(async () => {
+        second.emit('message', {
+          id: 10,
+          type: 'pageview',
+          url: '/a',
+          title: 'A',
+          time: '2026-07-31T08:00:01Z',
+        })
+        second.emit('message', {
+          id: 11,
+          type: 'pageview',
+          url: '/b',
+          title: 'B',
+          time: '2026-07-31T08:00:02Z',
+        })
+      })
+
+      expect(screen.getAllByText('/a')).toHaveLength(1)
+      expect(screen.getByText('/b')).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }

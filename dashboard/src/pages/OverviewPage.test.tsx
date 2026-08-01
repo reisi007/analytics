@@ -74,6 +74,6 @@ describe('OverviewPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '7 Tage' }))
 
     await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore))
-    expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain('/ingest/stats/summary?site=')
+    expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain('/ingest/stats/summary?')
   })
 })

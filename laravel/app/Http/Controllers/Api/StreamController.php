@@ -15,7 +15,11 @@ class StreamController extends Controller
 {
     public function stream(Request $request, StatsAggregator $aggregator): Response
     {
-        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
+        $request->validate([
+            'site' => ['nullable', 'string', 'max:255'],
+            'last_pv_id' => ['nullable', 'integer', 'min:0'],
+            'last_event_id' => ['nullable', 'integer', 'min:0'],
+        ]);
 
         if ((auth('api')->payload()->get('scope') ?? '') !== 'stream') {
             return response()->json(['error' => 'Forbidden'], 403);
@@ -26,7 +30,7 @@ class StreamController extends Controller
             $site = null;
         }
 
-        return new StreamedResponse(function () use ($site, $aggregator) {
+        return new StreamedResponse(function () use ($site, $request, $aggregator) {
             set_time_limit(0);
 
             $started = microtime(true);
@@ -34,8 +38,8 @@ class StreamController extends Controller
             $pollSeconds = (float) config('analytics.stream.poll_seconds');
             $windowMinutes = (int) config('analytics.stream.realtime_window_minutes');
 
-            $lastPageviewId = 0;
-            $lastEventId = 0;
+            $lastPageviewId = max(0, (int) $request->query('last_pv_id', 0));
+            $lastEventId = max(0, (int) $request->query('last_event_id', 0));
 
             while (true) {
                 if ($maxRuntime > 0 && microtime(true) - $started >= $maxRuntime) {

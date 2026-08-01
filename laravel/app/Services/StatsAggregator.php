@@ -146,6 +146,7 @@ class StatsAggregator
             ->get()
             ->map(fn ($pv) => [
                 'type' => 'pageview',
+                'id' => $pv->id,
                 'url' => $pv->url,
                 'title' => $pv->title,
                 'time' => $pv->created_at?->toIso8601String(),
@@ -159,6 +160,7 @@ class StatsAggregator
             ->get()
             ->map(fn ($e) => [
                 'type' => 'event',
+                'id' => $e->id,
                 'name' => $e->name,
                 'url' => $e->url,
                 'time' => $e->created_at?->toIso8601String(),

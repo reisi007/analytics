@@ -68,3 +68,26 @@
 > Offen:
 - [ ] **E2E-Teststabilität beobachten:** Mit Isolation + `retries: CI?1:0` + exakten Zähler-Assertions ist die Basis gesetzt.
       Wenn in CI weiter Flakes auftreten: Stale-Cache-Fälle (300s-Summary-/60s-Events-Cache) prüfen, `db_data_test`-Volume beachten.
+
+## 4. UI-Features (2026-08-01)
+> Anwenderwunsch: (1) Default-Ansicht = **Alle Sites** (nicht automatisch erste/erkannte Site), (2) **Logo im Header**,
+> (3) **Favicon im Site-Dropdown** mit Fallback, wenn keines gefunden.
+> **Erledigt (verifiziert, Implementierer ≠ Verifizierer, 2026-08-01):** Frontend 4/4 (typecheck, 69 Unit-Tests, build, lint),
+> Backend 74 Tests, E2E 17/17. Zusätzlich vorbestehenden Bug behoben: `docker-compose.test.yml` fehlten
+> `ANALYTICS_ADMIN_*`-Defaults → Seed auf frischem Volume schlug fehl (jetzt Defaults `admin@e2e.local`/`password`, wie CI).
+> Details:
+- Default-Ansicht „Alle Sites": `SiteContext` initialisiert `site=''`, keine Auto-Detection mehr (`detectSite` in `lib/site.ts` entfernt + Test gelöscht) ✅
+- Logo im Header: `Brand` in `App.tsx` zeigt `/favicon.svg` + Text ✅
+- Favicon-Dropdown: `components/SiteFavicon.tsx` (`https://<site>/favicon.ico`, Fallback Globus für „Alle Sites"/Initiale bei Fehler), `SiteSwitcher` als daisyUI-Dropdown (conditional-render, Escape/Outside-Click-Close) ✅
+- Tests: `SiteFavicon.test.tsx`, `SiteContext.test.tsx` neu; `OverviewPage`/`RealtimePage`-Tests an Default `''` angepasst ✅
+- E2E: `e2e/helpers/SiteSwitcherHelper.ts` neu; Specs (`sites`, `00-tracking`, `realtime`, `security`, `sites-management`) auf Dropdown umgestellt ✅
+
+## 5. Site-Modell: Label + Aliases (2026-08-01)
+> Anwenderwunsch: **Site = frei wählbarer Name (Label), `aliases` = die Hosts (Domains/Subdomains)**.
+> Vorher: `site` = kanonischer Host (wurde selbst als Host-Key gemappt + in der UI per HOSTNAME-Pattern erzwungen).
+> **Umsetzung delegiert** an Implementierer-Subagenten; Verifikation durch separaten Verifier-Subagenten (Zero-Failures).
+> Konsequenz: Nur Hosts aus `aliases` werden erkannt — jede Track-Domain muss explizit in `aliases` stehen (Apex inklusive).
+> **Erledigt + verifiziert (2026-08-01):** Implementierung delegiert, Verifikation durch separaten Verifier grün
+> (Backend 74/74, Frontend 76/76, typecheck/lint/build). `SiteDetector::buildMap()` mappt nur noch Aliases,
+> `detectSite()` matcht nur Aliases, `SitesPage` akzeptiert beliebige Site-Namen, Seeder nutzt `Reisinger Pictures`/`All The Rest`.
+- [ ] **Offener Punkt:** Bestandsdaten in Produktion (pageviews/events/sites unter alten Host-Namen) werden NICHT automatisch umbenannt → separates Daten-Migrations-Todo falls gewünscht

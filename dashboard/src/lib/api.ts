@@ -84,6 +84,7 @@ export interface SiteInput {
 
 export interface RecentActivity {
   type: 'pageview' | 'event'
+  id?: number
   url: string
   title?: string
   name?: string

@@ -26,6 +26,12 @@ function isActivity(item: StreamItem): item is StreamActivity {
   return item.type === 'pageview' || item.type === 'event'
 }
 
+function formatTime(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  return date.toLocaleString('de-DE')
+}
+
 export function RealtimePage() {
   const { site } = useSite()
   const [realtime, setRealtime] = useState<Realtime | null>(null)
@@ -33,10 +39,13 @@ export function RealtimePage() {
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastIds = useRef({ pv: 0, event: 0 })
 
   useEffect(() => {
     let source: EventSource | null = null
     let disposed = false
+    lastIds.current = { pv: 0, event: 0 }
+    setFeed([])
 
     const connect = async () => {
       if (disposed) return
@@ -60,6 +69,8 @@ export function RealtimePage() {
 
       const params = new URLSearchParams({ token: streamToken })
       if (site) params.set('site', site)
+      if (lastIds.current.pv > 0) params.set('last_pv_id', String(lastIds.current.pv))
+      if (lastIds.current.event > 0) params.set('last_event_id', String(lastIds.current.event))
       source = new EventSource(`/ingest/stream?${params.toString()}`)
       source.addEventListener('open', () => setConnected(true))
       source.addEventListener('message', (event) => {
@@ -72,15 +83,35 @@ export function RealtimePage() {
         if (item.type === 'snapshot') {
           setRealtime(item.data)
           setFeed((prev) => (prev.length > 0 ? prev : (item.data.recent ?? [])))
+          for (const entry of item.data.recent ?? []) {
+            if (entry.id == null) continue
+            if (entry.type === 'event') {
+              lastIds.current.event = Math.max(lastIds.current.event, entry.id)
+            } else {
+              lastIds.current.pv = Math.max(lastIds.current.pv, entry.id)
+            }
+          }
         } else if (isActivity(item)) {
+          if (item.id != null) {
+            if (item.type === 'event') {
+              lastIds.current.event = Math.max(lastIds.current.event, item.id)
+            } else {
+              lastIds.current.pv = Math.max(lastIds.current.pv, item.id)
+            }
+          }
           const entry: RecentActivity = {
             type: item.type,
+            id: item.id,
             url: item.url ?? '',
             title: item.title,
             name: item.name,
             time: item.time,
           }
-          setFeed((prev) => [entry, ...prev].slice(0, 50))
+          setFeed((prev) =>
+            entry.id != null && prev.some((e) => e.id === entry.id)
+              ? prev
+              : [entry, ...prev].slice(0, 50),
+          )
         }
       })
       source.addEventListener('error', () => {
@@ -129,7 +160,9 @@ export function RealtimePage() {
                     <span className={`badge badge-xs ${entry.type === 'event' ? 'badge-secondary' : 'badge-primary'}`}>
                       {entry.type === 'event' ? 'Event' : 'Pageview'}
                     </span>
-                    <span className="font-mono text-xs">{entry.url}</span>
+                    <span className="tooltip font-mono text-xs" data-tip={formatTime(entry.time)}>
+                      {entry.url}
+                    </span>
                     <span className="text-xs text-base-content/60">
                       {entry.type === 'event' ? (entry.name ?? '') : (entry.title ?? '')}
                     </span>

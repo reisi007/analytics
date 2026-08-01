@@ -39,6 +39,10 @@ sync.sh                   # rclone-Deploy (portal-Modell)
   `HandleCors`-Middleware ist entfernt. Unbekannter Referrer → **403 ohne** `Access-Control-Allow-Origin`.
 - **Domain-Detection:** Site wird **nicht** im JS konfiguriert. Server erkennt die Ziel-Domain über den **HTTP Referer**
   des Track-Requests (`SiteDetector::fromRequest`). Site-Liste aus DB-Tabelle `sites` (CORS-Whitelist).
+- **Site-Modell (Label + Aliases):** `site` ist ein **frei wählbares Label** (Anzeige-/Gruppierungsname, z. B. „Reisinger
+  Pictures"), `aliases` enthält die **Hosts** (Domains/Subdomains). Nur Hosts aus `aliases` werden als Track-Domains
+  erkannt — der `site`-Name selbst ist **kein** Host (Apex muss explizit in `aliases` stehen). `SiteDetector` mappt nur
+  Alias→Label; das Dashboard matcht in `detectSite()` ebenfalls nur Aliases.
 - **Unique Visitor:** `session_hash = sha256(ip + user_agent + datum)` — IP nur Eingabe in Einweg-Hash, wird nirgends
   persistiert (keine `ip`-Spalte im Schema).
 - **Subdomains eigenständig:** Subdomains (z. B. `dev.reisinger.pictures`) sind eigene Sites. Nur `www.*` → Apex
@@ -111,7 +115,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 
 - `pageviews`: `id`, `site` (index), `url`, `title`, `referrer`, `screen_width/height`, `language`, `session_hash` (64, index), `created_at` (index). **Keine `ip`-Spalte.**
 - `events`: `id`, `site` (index), `name` (index), `url`, `payload` (json), `session_hash` (index), `created_at` (index).
-- `sites`: `id`, `site` (unique), `aliases` (json-array), `created_at`. CORS-Whitelist + Site-Definition.
+- `sites`: `id`, `site` (unique, **Label**), `aliases` (json-array, **Hosts**), `created_at`. CORS-Whitelist + Site-Definition.
 - `users`: Admin-Login (Seeder).
 
 ## Code-Landkarte
@@ -127,7 +131,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `app/Http/Controllers/Api/SitesController.php` | CRUD `/ingest/sites` (auth), Delete optional `?delete_data=1` |
 | `app/Http/Controllers/Api/ConfigController.php` | `GET /ingest/config/sites` → `{site: [aliases]}` |
 | `app/Services/StatsAggregator.php` | Summary/Events/Realtime + Series-Gruppierung in Report-TZ, `recentActivity` |
-| `app/Support/SiteDetector.php` | Host→Site-Map aus `sites`-Tabelle, www→Apex, Referer-Detection, `flush()` nach Seeds/Edits |
+| `app/Support/SiteDetector.php` | Alias→Label-Map aus `sites`-Tabelle (nur `aliases` = Hosts), www→Apex, Referer-Detection, `flush()` nach Seeds/Edits |
 | `app/Support/ReportTime.php` | `timezone()`, `now()`, `today()`, `parse()` in Report-TZ |
 | `app/Console/Commands/GenerateWeeklyReport.php` | `report:weekly`, iteriert alle Sites mit Daten |
 | `app/Console/Commands/CheckOAuthToken.php` | `oauth:check-token` (Make-Webhook-Alert) |
@@ -135,21 +139,22 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `app/Mail/Transports/GmailRestTransport.php` | `gmail_rest` Mailer (OAuth2-REST, multipart/related), Make-Webhook-Fallback |
 | `app/Mail/WeeklyReportMail.php` | Wochenbericht-Template (Inline-Styles) |
 | `app/Models/PageView.php`/`Event.php`/`Site.php`/`User.php` | Eloquent-Modelle |
-| `database/seeders/` | `DatabaseSeeder` → `AdminUserSeeder` + `SiteSeeder` (2 Domains + `localhost` non-prod) |
+| `database/seeders/` | `DatabaseSeeder` → `AdminUserSeeder` + `SiteSeeder` (2 Sites `Reisinger Pictures`/`All The Rest` + `localhost` non-prod) |
 | `config/analytics.php` | stream/report/timezone/oauth/make-Konfig (ENV-gesteuert) |
 | `bootstrap/app.php` | `apiPrefix: 'ingest'`, `trustProxies(at:'*')`, `HandleCors` entfernt, JSON-Fehler für `/ingest/*` |
 
 ### Frontend (`dashboard/src/`)
 | Datei | Aufgabe |
 |---|---|
-| `main.tsx`, `App.tsx` | React-Bootstrap, Routing (`/login`, ProtectedRoute, `/`, `/realtime`, `/events`, `/sites`), Layout mit SiteSwitcher |
+| `main.tsx`, `App.tsx` | React-Bootstrap, Routing (`/login`, ProtectedRoute, `/`, `/realtime`, `/events`, `/sites`), Layout mit Logo im Header + SiteSwitcher als Favicon-Dropdown |
 | `lib/api.ts` | `fetchJson` (Bearer-Auth, 401→Login-Redirect), Typen, URL-Builder, alle API-Calls, `ApiError` |
 | `lib/auth.ts` | Token/User in localStorage (`analytics_token`, `analytics_user`), `login`/`logout`, `onAuthChange` |
-| `lib/site.ts` | `detectSite` (Alias-Map → Site, Fallback Host) |
-| `context/SiteContext.tsx` | Lädt `config/sites` + `stats/sites`, Site-Switcher-State, `refresh()` |
+| `lib/site.ts` | `SitesConfig`-Typ (Site → Aliases) |
+| `context/SiteContext.tsx` | Default `site=''` = „Alle Sites" (keine Auto-Detection mehr), lädt `config/sites` + `stats/sites`, Site-Switcher-State, `refresh()` |
 | `context/ToastContext.tsx` | ToastProvider (daisyUI `toast toast-top toast-end`, Auto-Dismiss 5s), `useToast()` |
 | `tracker.ts` | `sendTrack` (text/plain, sendBeacon→fetch keepalive), `pageviewData`, `trackEvent`, globales `window.trackEvent` |
 | `components/ApiErrorAlert.tsx` | Fehler-UI (Badge + Message) |
+| `components/SiteFavicon.tsx` | Favicon (`https://<site>/favicon.ico`) mit Fallback: Globus für „Alle Sites", Initiale bei Ladefehler |
 | `components/SeriesChart.tsx`, `StatCard.tsx` | Chart + Stat-Karten |
 | `pages/OverviewPage.tsx` | Summary-Übersicht (7/30/90 Tage), Top-Listen, `rangeParams` in Browser-TZ |
 | `pages/RealtimePage.tsx` | SSE-Client (`EventSource` mit `?token=`, Reconnect 3s, Feed) |
@@ -164,6 +169,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `helpers/AuthHelper.ts` | Login/Logout-Helper (Formular, warten auf Redirect) |
 | `helpers/NetworkHelper.ts` | Warten auf API-Antworten (track, login, summary, …) |
 | `helpers/ToastHelper.ts` | Toast-Assertions (daisyUI `.toast .alert`) |
+| `helpers/SiteSwitcherHelper.ts` | Site-Switcher-Dropdown steuern: `select`, `expectMenuContains/Excludes`, `trigger` |
 | `helpers/SiteHelper.ts` | Zentrales Site-Management über API: `ensureSite`, `track`, `summary`, `deleteSite`, `teardown`, `uniqueSite(prefix)` |
 | `tests/00-tracking.spec.ts` | Track-Seite unter eigener `*.e2e.local`-Site → Pageview/Event in Stats (1/1/1) |
 | `tests/auth.spec.ts` | Redirect unauthentifiziert, falsches/wahres Passwort |

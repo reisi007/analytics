@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router'
+import { SiteFavicon } from './components/SiteFavicon'
 import { SiteProvider, useSite } from './context/SiteContext'
 import { ToastProvider } from './context/ToastContext'
 import { getUser, isAuthenticated, logout } from './lib/auth'
@@ -17,25 +19,85 @@ export function ProtectedRoute() {
 
 function Brand() {
   const { site } = useSite()
-  return <span className="px-2 text-xl font-semibold">{site === '' ? 'Alle Sites' : site}</span>
+  return (
+    <div className="flex items-center gap-2 px-2">
+      <picture>
+        <source srcSet="/favicon.svg" type="image/svg+xml" />
+        <img src="/favicon.ico" alt="Analytics Logo" className="h-8 w-8 rounded-box" />
+      </picture>
+      <span className="text-xl font-semibold">{site === '' ? 'Alle Sites' : site}</span>
+    </div>
+  )
 }
 
 function SiteSwitcher() {
   const { site, setSite, sites } = useSite()
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  const select = (value: string) => {
+    setSite(value)
+    setOpen(false)
+  }
+
   return (
-    <select
-      value={site}
-      onChange={(event) => setSite(event.target.value)}
-      className="select select-sm select-bordered"
-      aria-label="Site auswählen"
-    >
-      <option value="">Alle Sites</option>
-      {sites.map((name) => (
-        <option key={name} value={name}>
-          {name}
-        </option>
-      ))}
-    </select>
+    <div ref={rootRef} className="dropdown dropdown-end">
+      <button
+        type="button"
+        className="btn btn-sm btn-ghost gap-2"
+        aria-label="Site auswählen"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <SiteFavicon site={site} className="h-5 w-5" />
+        <span className="max-w-40 truncate">{site === '' ? 'Alle Sites' : site}</span>
+      </button>
+      {open && (
+        <ul
+          role="menu"
+          className="menu dropdown-content z-30 max-h-96 w-64 overflow-y-auto rounded-box border border-base-300 bg-base-100 shadow-lg"
+        >
+          <li>
+            <button type="button" role="menuitem" className="flex items-center gap-2" onClick={() => select('')}>
+              <SiteFavicon site="" />
+              <span className="truncate">Alle Sites</span>
+            </button>
+          </li>
+          {sites.map((name) => (
+            <li key={name}>
+              <button
+                type="button"
+                role="menuitem"
+                className={`flex items-center gap-2 ${site === name ? 'menu-active' : ''}`}
+                onClick={() => select(name)}
+              >
+                <SiteFavicon site={name} />
+                <span className="truncate">{name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 

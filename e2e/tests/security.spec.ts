@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { AuthHelper } from '../helpers/AuthHelper'
 import { SiteHelper, bearerAuth, uniqueSite } from '../helpers/SiteHelper'
+import { SiteSwitcherHelper } from '../helpers/SiteSwitcherHelper'
 
 const BASE_URL = 'http://localhost:8081'
 
@@ -102,7 +103,7 @@ test('Mehr-Site-Aggregation liefert exakte Summen (inkl. www→Apex)', async ({ 
   expect(sites).toContain(siteB)
 
   await new AuthHelper(page).login()
-  await page.getByLabel('Site auswählen').selectOption(siteA)
+  await new SiteSwitcherHelper(page).select(siteA)
   const pageviewsStat = page.locator('.stat', { hasText: 'Seitenaufrufe' }).locator('.stat-value')
   await expect(pageviewsStat).toHaveText('3')
 })
@@ -122,7 +123,7 @@ test('getracktes Event erscheint auf der Events-Seite', async ({ page }) => {
 
   await new AuthHelper(page).login()
   await page.goto('/events')
-  await page.getByLabel('Site auswählen').selectOption(site)
+  await new SiteSwitcherHelper(page).select(site)
 
   const row = page.getByRole('row', { name: new RegExp(eventUrl) }).first()
   await expect(row).toContainText('security-click')

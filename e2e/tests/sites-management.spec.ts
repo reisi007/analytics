@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { AuthHelper } from '../helpers/AuthHelper'
 import { SiteHelper } from '../helpers/SiteHelper'
+import { SiteSwitcherHelper } from '../helpers/SiteSwitcherHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 
 const RUN = Date.now()
@@ -47,10 +48,10 @@ test('Site anlegen', async ({ page }) => {
 test('neue Site ist im Site-Switcher sichtbar', async ({ page }) => {
   await new AuthHelper(page).login()
 
-  const switcher = page.getByLabel('Site auswählen')
-  await expect(switcher).toContainText(SITE)
-  await switcher.selectOption(SITE)
-  await expect(switcher).toHaveValue(SITE)
+  const switcher = new SiteSwitcherHelper(page)
+  await switcher.expectMenuContains(SITE)
+  await switcher.select(SITE)
+  await expect(switcher.trigger()).toContainText(SITE)
 })
 
 test('Aliases einer Site editieren', async ({ page }) => {
@@ -85,7 +86,7 @@ test('Site ohne Daten löschen', async ({ page }) => {
 
   await expect(row).toHaveCount(0)
   await new ToastHelper(page).expectToast('Site gelöscht')
-  await expect(page.getByLabel('Site auswählen')).not.toContainText(SITE)
+  await new SiteSwitcherHelper(page).expectMenuExcludes(SITE)
 })
 
 test('Site mit Daten löschen', async ({ page }) => {

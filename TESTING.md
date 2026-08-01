@@ -22,8 +22,9 @@
 
 ## Frontend-Tests (`dashboard/src/`)
 
-- Tests liegen **neben** den Quell-Dateien: `lib/api.test.ts`, `lib/auth.test.ts`, `lib/site.test.ts`,
-  `components/ApiErrorAlert.test.tsx`, `context/ToastContext.test.tsx`, `pages/{Overview,Realtime,Events,Sites,Login}Page.test.tsx`, `tracker.test.ts`.
+- Tests liegen **neben** den Quell-Dateien: `lib/api.test.ts`, `lib/auth.test.ts`,
+  `components/ApiErrorAlert.test.tsx`, `components/SiteFavicon.test.tsx`, `context/SiteContext.test.tsx`,
+  `context/ToastContext.test.tsx`, `pages/{Overview,Realtime,Events,Sites,Login}Page.test.tsx`, `tracker.test.ts`.
 - Muster: `vi.stubGlobal('fetch', …)` für API-Mocks, `MemoryRouter` für Routing, `localStorage.clear()` im `beforeEach`.
 - Befehle: `pnpm typecheck`, `pnpm test:unit`, `pnpm build` (build:app + build:tracker).
 

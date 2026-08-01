@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { AuthHelper } from '../helpers/AuthHelper'
 import { SiteHelper, uniqueSite } from '../helpers/SiteHelper'
+import { SiteSwitcherHelper } from '../helpers/SiteSwitcherHelper'
 
 const BASE_URL = 'http://localhost:8081'
 
@@ -33,7 +34,7 @@ test('tracked event is pushed to the realtime feed via SSE', async ({ page }) =>
 
   await new AuthHelper(page).login()
   await page.goto('/realtime')
-  await page.getByLabel('Site auswählen').selectOption(site)
+  await new SiteSwitcherHelper(page).select(site)
 
   const eventUrl = `https://${site}/realtime-push`
   await siteHelper.track(`https://${site}/`, {

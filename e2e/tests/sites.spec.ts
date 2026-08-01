@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { AuthHelper } from '../helpers/AuthHelper'
 import { SiteHelper, uniqueSite } from '../helpers/SiteHelper'
+import { SiteSwitcherHelper } from '../helpers/SiteSwitcherHelper'
 
 const BASE_URL = 'http://localhost:8081'
 const SITE = uniqueSite('e2e-switcher')
@@ -22,10 +23,10 @@ test.afterAll(async () => {
 test('site switcher lists all sites and "Alle Sites" aggregates', async ({ page }) => {
   await new AuthHelper(page).login()
 
-  const switcher = page.getByLabel('Site auswählen')
-  await expect(switcher).toContainText('Alle Sites')
-  await expect(switcher).toContainText(SITE)
+  const switcher = new SiteSwitcherHelper(page)
+  await switcher.expectMenuContains('Alle Sites')
+  await switcher.expectMenuContains(SITE)
 
-  await switcher.selectOption('')
+  await switcher.select('Alle Sites')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Alle Sites')
 })

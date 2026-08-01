@@ -2,6 +2,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test'
 import { AuthHelper } from '../helpers/AuthHelper'
 import { NetworkHelper } from '../helpers/NetworkHelper'
 import { SiteHelper, uniqueSite } from '../helpers/SiteHelper'
+import { SiteSwitcherHelper } from '../helpers/SiteSwitcherHelper'
 
 const BASE_URL = 'http://localhost:8081'
 const SITE = uniqueSite('e2e-track')
@@ -35,7 +36,7 @@ test('tracked pageview shows up in the overview stats', async ({ page }) => {
   await eventTrack
 
   await new AuthHelper(page).login()
-  await page.getByLabel('Site auswählen').selectOption(SITE)
+  await new SiteSwitcherHelper(page).select(SITE)
 
   const pageviews = page.locator('.stat', { hasText: 'Seitenaufrufe' }).locator('.stat-value')
   const unique = page.locator('.stat', { hasText: 'Unique Besucher' }).locator('.stat-value')
