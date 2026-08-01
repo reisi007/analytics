@@ -4,7 +4,7 @@ export class SiteSwitcherHelper {
   constructor(private page: Page) {}
 
   trigger(): Locator {
-    return this.page.getByLabel('Site auswählen')
+    return this.page.getByLabel('Webseite auswählen')
   }
 
   private async open(): Promise<void> {

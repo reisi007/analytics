@@ -33,19 +33,19 @@ test.afterAll(async () => {
   await requestContext?.dispose()
 })
 
-test('Site anlegen', async ({ page }) => {
+test('Webseite anlegen', async ({ page }) => {
   await new AuthHelper(page).login()
-  await new SidebarHelper(page).open('Sites')
-  await expect(page.getByRole('heading', { level: 1, name: 'Sites' })).toBeVisible()
+  await new SidebarHelper(page).open('Webseiten')
+  await expect(page.getByRole('heading', { level: 1, name: 'Webseiten' })).toBeVisible()
 
-  await page.getByLabel('Site-Name').fill(SITE_CREATE)
+  await page.getByLabel('Webseiten-Name').fill(SITE_CREATE)
   await page.getByLabel('Aliases').fill(`${SITE_CREATE},www.${SITE_CREATE}`)
-  await page.getByRole('button', { name: 'Site hinzufügen' }).click()
+  await page.getByRole('button', { name: 'Webseite hinzufügen' }).click()
 
   const row = page.getByRole('row', { name: SITE_CREATE_PATTERN })
   await expect(row).toBeVisible()
   await expect(row.getByText(`www.${SITE_CREATE}`)).toBeVisible()
-  await new ToastHelper(page).expectToast('Site angelegt')
+  await new ToastHelper(page).expectToast('Webseite angelegt')
 })
 
 test('neue Site ist im Site-Switcher sichtbar', async ({ page }) => {
@@ -66,16 +66,16 @@ test('Aliases einer Site editieren', async ({ page }) => {
   await row.getByRole('button', { name: 'Bearbeiten' }).click()
 
   const dialog = page.getByRole('dialog')
-  await expect(dialog).toContainText('Site bearbeiten')
+  await expect(dialog).toContainText('Webseite bearbeiten')
   await dialog.locator('#edit-aliases').fill(`${SITE},blog.${SITE}`)
   await dialog.getByRole('button', { name: 'Speichern' }).click()
 
   await expect(row.getByText(`blog.${SITE}`)).toBeVisible()
   await expect(row.getByText(`www.${SITE}`)).toHaveCount(0)
-  await new ToastHelper(page).expectToast('Site aktualisiert')
+  await new ToastHelper(page).expectToast('Webseite aktualisiert')
 })
 
-test('Site ohne Daten löschen', async ({ page }) => {
+test('Webseite ohne Daten löschen', async ({ page }) => {
   await new AuthHelper(page).login()
   await page.goto('/sites')
 
@@ -84,15 +84,15 @@ test('Site ohne Daten löschen', async ({ page }) => {
   await row.getByRole('button', { name: 'Löschen' }).click()
 
   const dialog = page.getByRole('dialog')
-  await expect(dialog).toContainText('Site löschen')
+  await expect(dialog).toContainText('Webseite löschen')
   await dialog.getByRole('button', { name: 'Löschen' }).click()
 
   await expect(row).toHaveCount(0)
-  await new ToastHelper(page).expectToast('Site gelöscht')
+  await new ToastHelper(page).expectToast('Webseite gelöscht')
   await new SiteSwitcherHelper(page).expectMenuExcludes(SITE)
 })
 
-test('Site mit Daten löschen', async ({ page }) => {
+test('Webseite mit Daten löschen', async ({ page }) => {
   await new AuthHelper(page).login()
   await page.goto('/sites')
 
@@ -104,5 +104,5 @@ test('Site mit Daten löschen', async ({ page }) => {
   await dialog.getByRole('button', { name: 'Löschen' }).click()
 
   await expect(row).toHaveCount(0)
-  await new ToastHelper(page).expectToast('Site und Daten gelöscht')
+  await new ToastHelper(page).expectToast('Webseite und Daten gelöscht')
 })

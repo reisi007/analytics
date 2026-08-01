@@ -65,7 +65,7 @@ function SiteSwitcher() {
       <button
         type="button"
         className="btn btn-sm btn-ghost gap-2"
-        aria-label={t`Site auswählen`}
+        aria-label={t`Webseite auswählen`}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
@@ -158,7 +158,7 @@ function navItems() {
     { to: '/', end: true, label: t`Übersicht` },
     { to: '/realtime', end: false, label: t`Echtzeit` },
     { to: '/events', end: false, label: t`Events` },
-    { to: '/sites', end: false, label: t`Sites` },
+    { to: '/sites', end: false, label: t`Webseiten` },
   ]
 }
 

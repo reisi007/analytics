@@ -60,7 +60,7 @@ msgstr "All aliases are invalid"
 #: src/App.tsx
 #: src/pages/OverviewPage.tsx
 msgid "Alle Webseiten"
-msgstr "All sites"
+msgstr "All websites"
 
 #: src/pages/LoginPage.tsx
 msgid "Analytics"
@@ -166,8 +166,12 @@ msgid "Name erforderlich"
 msgstr "Name required"
 
 #: src/pages/SitesPage.tsx
-msgid "Neue Site"
-msgstr "New site"
+#~ msgid "Neue Site"
+#~ msgstr "New site"
+
+#: src/pages/SitesPage.tsx
+msgid "Neue Webseite"
+msgstr "New website"
 
 #: src/pages/RealtimePage.tsx
 msgid "Noch keine Aktivität in diesem Fenster."
@@ -212,54 +216,54 @@ msgid "Seitenaufrufe pro Tag"
 msgstr "Pageviews per day"
 
 #: src/pages/SitesPage.tsx
-msgid "Site"
-msgstr "Site"
+#~ msgid "Site"
+#~ msgstr "Site"
 
 #. placeholder {0}: row.site
 #: src/pages/SitesPage.tsx
-msgid "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
-msgstr "Delete site “{0}”? Without deleting data, the entry stays removed from the tracker and historical data is kept."
+#~ msgid "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+#~ msgstr "Delete site “{0}”? Without deleting data, the entry stays removed from the tracker and historical data is kept."
 
 #: src/pages/SitesPage.tsx
-msgid "Site aktualisiert"
-msgstr "Site updated"
+#~ msgid "Site aktualisiert"
+#~ msgstr "Site updated"
 
 #: src/pages/SitesPage.tsx
-msgid "Site angelegt"
-msgstr "Site created"
+#~ msgid "Site angelegt"
+#~ msgstr "Site created"
 
 #: src/App.tsx
-msgid "Site auswählen"
-msgstr "Select site"
+#~ msgid "Site auswählen"
+#~ msgstr "Select site"
 
 #: src/pages/SitesPage.tsx
-msgid "Site bearbeiten"
-msgstr "Edit site"
+#~ msgid "Site bearbeiten"
+#~ msgstr "Edit site"
 
 #: src/pages/SitesPage.tsx
-msgid "Site gelöscht"
-msgstr "Site deleted"
+#~ msgid "Site gelöscht"
+#~ msgstr "Site deleted"
 
 #: src/pages/SitesPage.tsx
-msgid "Site hinzufügen"
-msgstr "Add site"
+#~ msgid "Site hinzufügen"
+#~ msgstr "Add site"
 
 #: src/pages/SitesPage.tsx
-msgid "Site löschen"
-msgstr "Delete site"
+#~ msgid "Site löschen"
+#~ msgstr "Delete site"
 
 #: src/pages/SitesPage.tsx
-msgid "Site und Daten gelöscht"
-msgstr "Site and data deleted"
+#~ msgid "Site und Daten gelöscht"
+#~ msgstr "Site and data deleted"
 
 #: src/pages/SitesPage.tsx
-msgid "Site-Name"
-msgstr "Site name"
+#~ msgid "Site-Name"
+#~ msgstr "Site name"
 
 #: src/App.tsx
 #: src/pages/SitesPage.tsx
-msgid "Sites"
-msgstr "Sites"
+#~ msgid "Sites"
+#~ msgstr "Sites"
 
 #: src/pages/SitesPage.tsx
 msgid "Speichern"
@@ -297,6 +301,56 @@ msgstr "URL"
 #: src/pages/RealtimePage.tsx
 msgid "Verbindung getrennt – erneuter Versuch in 3s…"
 msgstr "Connection lost – retrying in 3s…"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite"
+msgstr "Website"
+
+#. placeholder {0}: row.site
+#: src/pages/SitesPage.tsx
+msgid "Webseite „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+msgstr "Delete website “{0}”? Without data deletion the entry is removed from the tracker, historical data is kept."
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite aktualisiert"
+msgstr "Website updated"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite angelegt"
+msgstr "Website created"
+
+#: src/App.tsx
+msgid "Webseite auswählen"
+msgstr "Select website"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite bearbeiten"
+msgstr "Edit website"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite gelöscht"
+msgstr "Website deleted"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite hinzufügen"
+msgstr "Add website"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite löschen"
+msgstr "Delete website"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite und Daten gelöscht"
+msgstr "Website and data deleted"
+
+#: src/App.tsx
+#: src/pages/SitesPage.tsx
+msgid "Webseiten"
+msgstr "Websites"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseiten-Name"
+msgstr "Website name"
 
 #: src/pages/EventsPage.tsx
 msgid "Weiter"

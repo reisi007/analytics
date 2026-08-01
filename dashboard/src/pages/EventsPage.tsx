@@ -43,7 +43,7 @@ export function EventsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-2">
         <h1 className="text-lg font-semibold"><Trans>Events</Trans></h1>
         <input
           type="text"
@@ -53,7 +53,7 @@ export function EventsPage() {
             setPage(1)
           }}
           placeholder={t`Event-Name filtern`}
-          className="input input-bordered input-sm w-full max-w-xs"
+          className="input input-bordered input-sm w-full"
         />
       </div>
 

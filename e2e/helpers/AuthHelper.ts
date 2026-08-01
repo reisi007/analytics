@@ -41,7 +41,7 @@ export class AuthHelper {
       throw new Error(`AuthHelper.login fehlgeschlagen für ${email}`)
     }
     await this.page.waitForURL('/')
-    await expect(this.page.getByLabel('Site auswählen')).toBeVisible()
+    await expect(this.page.getByLabel('Webseite auswählen')).toBeVisible()
   }
 
   async logout(): Promise<void> {

@@ -47,7 +47,7 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
     setSubmitting(true)
     try {
       await createSite({ site, aliases: aliasesList })
-      toast.success(t`Site angelegt`)
+      toast.success(t`Webseite angelegt`)
       setSiteName('')
       setAliases('')
       refresh()
@@ -62,14 +62,14 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
   return (
     <div className="card bg-base-100 shadow-sm">
       <div className="card-body">
-        <h2 className="card-title text-base"><Trans>Neue Site</Trans></h2>
+        <h2 className="card-title text-base"><Trans>Neue Webseite</Trans></h2>
         <div className="grid gap-3 md:grid-cols-2">
           <input
             type="text"
             value={siteName}
             onChange={(event) => setSiteName(event.target.value)}
             placeholder={t`z. B. Mein Blog`}
-            aria-label={t`Site-Name`}
+            aria-label={t`Webseiten-Name`}
             className="input input-bordered w-full"
           />
           <input
@@ -81,9 +81,9 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
             className="input input-bordered w-full"
           />
         </div>
-        <div>
-          <button type="button" onClick={() => void submit()} disabled={submitting} className="btn btn-primary btn-sm">
-            <Trans>Site hinzufügen</Trans>
+        <div className="mt-6">
+          <button type="button" onClick={() => void submit()} disabled={submitting} className="btn btn-primary btn-sm w-full">
+            <Trans>Webseite hinzufügen</Trans>
           </button>
         </div>
       </div>
@@ -111,7 +111,7 @@ function EditModal({ row, onClose, onSaved }: { row: SiteRow | null; onClose: ()
     setSubmitting(true)
     try {
       await updateSite(row.id, { aliases: aliasesList })
-      toast.success(t`Site aktualisiert`)
+      toast.success(t`Webseite aktualisiert`)
       refresh()
       onSaved()
       onClose()
@@ -126,7 +126,7 @@ function EditModal({ row, onClose, onSaved }: { row: SiteRow | null; onClose: ()
     row && (
       <dialog open className="modal modal-open" role="dialog" aria-modal="true">
         <div className="modal-box">
-          <h2 className="text-lg font-semibold"><Trans>Site bearbeiten</Trans></h2>
+          <h2 className="text-lg font-semibold"><Trans>Webseite bearbeiten</Trans></h2>
           <p className="mt-1 text-sm text-base-content/70">
             {row.site}
           </p>
@@ -170,7 +170,7 @@ function DeleteModal({ row, onClose, onDeleted }: { row: SiteRow | null; onClose
     setSubmitting(true)
     try {
       await deleteSite(row.id, deleteData)
-      toast.success(deleteData ? t`Site und Daten gelöscht` : t`Site gelöscht`)
+      toast.success(deleteData ? t`Webseite und Daten gelöscht` : t`Webseite gelöscht`)
       refresh()
       onDeleted()
       onClose()
@@ -185,9 +185,9 @@ function DeleteModal({ row, onClose, onDeleted }: { row: SiteRow | null; onClose
     row && (
       <dialog open className="modal modal-open" role="dialog" aria-modal="true">
         <div className="modal-box">
-          <h2 className="text-lg font-semibold"><Trans>Site löschen</Trans></h2>
+          <h2 className="text-lg font-semibold"><Trans>Webseite löschen</Trans></h2>
           <p className="mt-1 text-sm">
-            {t`Site „${row.site}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten.`}
+            {t`Webseite „${row.site}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten.`}
           </p>
           <label className="label cursor-pointer justify-start gap-3">
             <input
@@ -244,7 +244,7 @@ export function SitesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold"><Trans>Sites</Trans></h1>
+      <h1 className="text-lg font-semibold"><Trans>Webseiten</Trans></h1>
 
       <SiteForm onCreated={reload} />
 
@@ -256,7 +256,7 @@ export function SitesPage() {
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <th><Trans>Site</Trans></th>
+                  <th><Trans>Webseite</Trans></th>
                   <th><Trans>Aliases</Trans></th>
                   <th><Trans>Erstellt</Trans></th>
                   <th><Trans>Aktionen</Trans></th>

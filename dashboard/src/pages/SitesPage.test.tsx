@@ -76,11 +76,11 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: '  neue.example  ' } })
+    fireEvent.change(screen.getByLabelText('Webseiten-Name'), { target: { value: '  neue.example  ' } })
     fireEvent.change(screen.getByLabelText('Aliases'), {
       target: { value: ' neue.example , www.neue.example , , sub.neue.example' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Webseite hinzufügen' }))
 
     await waitFor(() => {
       const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
@@ -98,7 +98,7 @@ describe('SitesPage', () => {
       expect(reloadCalls.length).toBeGreaterThan(0)
       expect(reloadCalls.at(-1)?.[1]?.method ?? 'GET').toBe('GET')
     })
-    expect(await screen.findByText('Site angelegt')).toBeInTheDocument()
+    expect(await screen.findByText('Webseite angelegt')).toBeInTheDocument()
   })
 
   it('rejects an empty site name with a toast and does not POST', async () => {
@@ -114,8 +114,8 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: '    ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Webseiten-Name'), { target: { value: '    ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Webseite hinzufügen' }))
 
     expect(await screen.findByText('Name erforderlich')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
@@ -139,11 +139,11 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: '  Mein Blog  ' } })
+    fireEvent.change(screen.getByLabelText('Webseiten-Name'), { target: { value: '  Mein Blog  ' } })
     fireEvent.change(screen.getByLabelText('Aliases'), {
       target: { value: '  HTTPS://WWW.EXAMPLE.COM  , blog.example.com' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Webseite hinzufügen' }))
 
     await waitFor(() => {
       const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
@@ -168,9 +168,9 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'example.com' } })
+    fireEvent.change(screen.getByLabelText('Webseiten-Name'), { target: { value: 'example.com' } })
     fireEvent.change(screen.getByLabelText('Aliases'), { target: { value: 'not a host, also_bad' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Webseite hinzufügen' }))
 
     expect(await screen.findByText('Alle Aliases sind ungültig')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
@@ -195,7 +195,7 @@ describe('SitesPage', () => {
     await screen.findAllByText('reisinger.pictures')
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[0])
-    const modal = await screen.findByText('Site bearbeiten')
+    const modal = await screen.findByText('Webseite bearbeiten')
     expect(modal).toBeInTheDocument()
     expect(screen.getByText('reisinger.pictures', { selector: 'p' })).toBeInTheDocument()
 
@@ -212,7 +212,7 @@ describe('SitesPage', () => {
         aliases: ['reisinger.pictures', 'shop.reisinger.pictures'],
       })
     })
-    expect(await screen.findByText('Site aktualisiert')).toBeInTheDocument()
+    expect(await screen.findByText('Webseite aktualisiert')).toBeInTheDocument()
   })
 
   it('deletes a site without data', async () => {
@@ -234,7 +234,7 @@ describe('SitesPage', () => {
     await screen.findByText('all-the.rest')
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[1])
-    await screen.findByText('Site löschen')
+    await screen.findByText('Webseite löschen')
     const dialog = screen.getAllByRole('dialog')[0]
     fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
 
@@ -243,7 +243,7 @@ describe('SitesPage', () => {
       expect(del).toBeDefined()
       expect(String(del?.[0])).toBe('/ingest/sites/2')
     })
-    expect(await screen.findByText('Site gelöscht')).toBeInTheDocument()
+    expect(await screen.findByText('Webseite gelöscht')).toBeInTheDocument()
   })
 
   it('deletes a site including data', async () => {
@@ -265,7 +265,7 @@ describe('SitesPage', () => {
     await screen.findAllByText('reisinger.pictures')
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
-    await screen.findByText('Site löschen')
+    await screen.findByText('Webseite löschen')
     const dialog = screen.getAllByRole('dialog')[0]
     fireEvent.click(within(dialog).getByLabelText('Getrackte Daten mitlöschen (unwiderruflich)'))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
@@ -275,7 +275,7 @@ describe('SitesPage', () => {
       expect(del).toBeDefined()
       expect(String(del?.[0])).toBe('/ingest/sites/1?delete_data=1')
     })
-    expect(await screen.findByText('Site und Daten gelöscht')).toBeInTheDocument()
+    expect(await screen.findByText('Webseite und Daten gelöscht')).toBeInTheDocument()
   })
 
   it('shows an error alert when loading fails', async () => {
@@ -303,8 +303,8 @@ describe('SitesPage', () => {
 
     await screen.findAllByText('reisinger.pictures')
 
-    fireEvent.change(screen.getByLabelText('Site-Name'), { target: { value: 'duplicate.example' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Site hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Webseiten-Name'), { target: { value: 'duplicate.example' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Webseite hinzufügen' }))
 
     expect(await screen.findByText('Site bereits vorhanden')).toBeInTheDocument()
   })

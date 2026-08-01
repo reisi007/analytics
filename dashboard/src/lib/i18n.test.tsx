@@ -35,11 +35,11 @@ describe('English catalog', () => {
     }
   })
 
-  it('translates "Alle Webseiten" to "All sites"', () => {
+  it('translates "Alle Webseiten" to "All websites"', () => {
     const key = Object.entries(deMessages).find(
       ([, value]) => firstText(value) === 'Alle Webseiten',
     )?.[0]
     expect(key).toBeDefined()
-    expect(firstText(enMessages[key!])).toBe('All sites')
+    expect(firstText(enMessages[key!])).toBe('All websites')
   })
 })

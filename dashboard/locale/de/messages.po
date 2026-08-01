@@ -166,8 +166,12 @@ msgid "Name erforderlich"
 msgstr "Name erforderlich"
 
 #: src/pages/SitesPage.tsx
-msgid "Neue Site"
-msgstr "Neue Site"
+#~ msgid "Neue Site"
+#~ msgstr "Neue Site"
+
+#: src/pages/SitesPage.tsx
+msgid "Neue Webseite"
+msgstr "Neue Webseite"
 
 #: src/pages/RealtimePage.tsx
 msgid "Noch keine Aktivität in diesem Fenster."
@@ -212,54 +216,54 @@ msgid "Seitenaufrufe pro Tag"
 msgstr "Seitenaufrufe pro Tag"
 
 #: src/pages/SitesPage.tsx
-msgid "Site"
-msgstr "Site"
+#~ msgid "Site"
+#~ msgstr "Site"
 
 #. placeholder {0}: row.site
 #: src/pages/SitesPage.tsx
-msgid "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
-msgstr "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+#~ msgid "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+#~ msgstr "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
 
 #: src/pages/SitesPage.tsx
-msgid "Site aktualisiert"
-msgstr "Site aktualisiert"
+#~ msgid "Site aktualisiert"
+#~ msgstr "Site aktualisiert"
 
 #: src/pages/SitesPage.tsx
-msgid "Site angelegt"
-msgstr "Site angelegt"
+#~ msgid "Site angelegt"
+#~ msgstr "Site angelegt"
 
 #: src/App.tsx
-msgid "Site auswählen"
-msgstr "Site auswählen"
+#~ msgid "Site auswählen"
+#~ msgstr "Site auswählen"
 
 #: src/pages/SitesPage.tsx
-msgid "Site bearbeiten"
-msgstr "Site bearbeiten"
+#~ msgid "Site bearbeiten"
+#~ msgstr "Site bearbeiten"
 
 #: src/pages/SitesPage.tsx
-msgid "Site gelöscht"
-msgstr "Site gelöscht"
+#~ msgid "Site gelöscht"
+#~ msgstr "Site gelöscht"
 
 #: src/pages/SitesPage.tsx
-msgid "Site hinzufügen"
-msgstr "Site hinzufügen"
+#~ msgid "Site hinzufügen"
+#~ msgstr "Site hinzufügen"
 
 #: src/pages/SitesPage.tsx
-msgid "Site löschen"
-msgstr "Site löschen"
+#~ msgid "Site löschen"
+#~ msgstr "Site löschen"
 
 #: src/pages/SitesPage.tsx
-msgid "Site und Daten gelöscht"
-msgstr "Site und Daten gelöscht"
+#~ msgid "Site und Daten gelöscht"
+#~ msgstr "Site und Daten gelöscht"
 
 #: src/pages/SitesPage.tsx
-msgid "Site-Name"
-msgstr "Site-Name"
+#~ msgid "Site-Name"
+#~ msgstr "Site-Name"
 
 #: src/App.tsx
 #: src/pages/SitesPage.tsx
-msgid "Sites"
-msgstr "Sites"
+#~ msgid "Sites"
+#~ msgstr "Sites"
 
 #: src/pages/SitesPage.tsx
 msgid "Speichern"
@@ -297,6 +301,56 @@ msgstr "URL"
 #: src/pages/RealtimePage.tsx
 msgid "Verbindung getrennt – erneuter Versuch in 3s…"
 msgstr "Verbindung getrennt – erneuter Versuch in 3s…"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite"
+msgstr "Webseite"
+
+#. placeholder {0}: row.site
+#: src/pages/SitesPage.tsx
+msgid "Webseite „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+msgstr "Webseite „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite aktualisiert"
+msgstr "Webseite aktualisiert"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite angelegt"
+msgstr "Webseite angelegt"
+
+#: src/App.tsx
+msgid "Webseite auswählen"
+msgstr "Webseite auswählen"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite bearbeiten"
+msgstr "Webseite bearbeiten"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite gelöscht"
+msgstr "Webseite gelöscht"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite hinzufügen"
+msgstr "Webseite hinzufügen"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite löschen"
+msgstr "Webseite löschen"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseite und Daten gelöscht"
+msgstr "Webseite und Daten gelöscht"
+
+#: src/App.tsx
+#: src/pages/SitesPage.tsx
+msgid "Webseiten"
+msgstr "Webseiten"
+
+#: src/pages/SitesPage.tsx
+msgid "Webseiten-Name"
+msgstr "Webseiten-Name"
 
 #: src/pages/EventsPage.tsx
 msgid "Weiter"

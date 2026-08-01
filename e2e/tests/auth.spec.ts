@@ -17,5 +17,5 @@ test('wrong password shows the error alert', async ({ page }) => {
 
 test('correct credentials land on / and the site switcher contains "Alle Webseiten"', async ({ page }) => {
   await new AuthHelper(page).login('admin@e2e.local', 'password')
-  await expect(page.getByLabel('Site auswählen')).toContainText('Alle Webseiten')
+  await expect(page.getByLabel('Webseite auswählen')).toContainText('Alle Webseiten')
 })

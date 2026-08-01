@@ -36,18 +36,18 @@ test('kein horizontaler Scroll auf Login, Dashboard und Sites', async ({ page })
   await expectNoHorizontalScroll(page)
 
   await page.goto('/sites')
-  await expect(page.getByRole('heading', { level: 1, name: 'Sites' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Webseiten' })).toBeVisible()
   await expectNoHorizontalScroll(page)
 })
 
-test('Hamburger öffnet das Menü und navigiert zu Sites', async ({ page }) => {
+test('Hamburger öffnet das Menü und navigiert zu Webseiten', async ({ page }) => {
   await new AuthHelper(page).login()
 
   const hamburger = page.getByLabel('Menü öffnen')
   await expect(hamburger).toBeVisible()
   await expect(page.getByRole('link', { name: 'Übersicht', exact: true })).toHaveCount(0)
 
-  await new SidebarHelper(page).open('Sites')
+  await new SidebarHelper(page).open('Webseiten')
   await expect(page).toHaveURL(/\/sites$/)
 
   const drawer = page.locator('#app-drawer')
