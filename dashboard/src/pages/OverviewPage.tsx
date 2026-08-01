@@ -87,14 +87,14 @@ export function OverviewPage() {
       <SeriesChart series={summary?.series ?? []} />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="card bg-base-100 shadow-sm">
+        <div className="card min-w-0 bg-base-100 shadow-sm">
           <div className="card-body">
             <h2 className="card-title"><Trans>Top-Seiten</Trans></h2>
             <div className="overflow-x-auto">
-              <table className="table table-sm">
+              <table className="table table-sm table-fixed w-full">
               <thead>
                 <tr>
-                  <th><Trans>Seite</Trans></th>
+                  <th className="w-3/4"><Trans>Seite</Trans></th>
                   <th className="text-right"><Trans>Aufrufe</Trans></th>
                 </tr>
               </thead>
@@ -113,14 +113,14 @@ export function OverviewPage() {
           </div>
         </div>
 
-        <div className="card bg-base-100 shadow-sm">
+        <div className="card min-w-0 bg-base-100 shadow-sm">
           <div className="card-body">
             <h2 className="card-title"><Trans>Top-Referrer</Trans></h2>
             <div className="overflow-x-auto">
-              <table className="table table-sm">
+              <table className="table table-sm table-fixed w-full">
               <thead>
                 <tr>
-                  <th><Trans>Referrer</Trans></th>
+                  <th className="w-3/4"><Trans>Referrer</Trans></th>
                   <th className="text-right"><Trans>Aufrufe</Trans></th>
                 </tr>
               </thead>
@@ -139,21 +139,21 @@ export function OverviewPage() {
           </div>
         </div>
 
-        <div className="card bg-base-100 shadow-sm">
+        <div className="card min-w-0 bg-base-100 shadow-sm">
           <div className="card-body">
             <h2 className="card-title"><Trans>Top-Events</Trans></h2>
             <div className="overflow-x-auto">
-              <table className="table table-sm">
+              <table className="table table-sm table-fixed w-full">
               <thead>
                 <tr>
-                  <th><Trans>Event</Trans></th>
+                  <th className="w-3/4"><Trans>Event</Trans></th>
                   <th className="text-right"><Trans>Anzahl</Trans></th>
                 </tr>
               </thead>
               <tbody>
                 {(summary?.top_events ?? []).map((event) => (
                   <tr key={event.name}>
-                    <td className="font-mono text-xs">{event.name}</td>
+                    <td className="font-mono text-xs"><span className="block max-w-full truncate" title={event.name}>{event.name}</span></td>
                     <td className="text-right">{event.events}</td>
                   </tr>
                 ))}
