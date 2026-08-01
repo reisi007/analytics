@@ -20,13 +20,13 @@ test.afterAll(async () => {
   await requestContext?.dispose()
 })
 
-test('site switcher lists all sites and "Alle Sites" aggregates', async ({ page }) => {
+test('site switcher lists all sites and "Alle Webseiten" aggregates', async ({ page }) => {
   await new AuthHelper(page).login()
 
   const switcher = new SiteSwitcherHelper(page)
-  await switcher.expectMenuContains('Alle Sites')
+  await switcher.expectMenuContains('Alle Webseiten')
   await switcher.expectMenuContains(SITE)
 
-  await switcher.select('Alle Sites')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Alle Sites')
+  await switcher.select('Alle Webseiten')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Alle Webseiten')
 })

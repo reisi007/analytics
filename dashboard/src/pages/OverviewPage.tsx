@@ -56,7 +56,7 @@ export function OverviewPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">{site === '' ? 'Alle Sites' : site}</h1>
+        <h1 className="text-lg font-semibold">{site === '' ? 'Alle Webseiten' : site}</h1>
         <div className="join">
           {RANGES.map((option) => (
             <button

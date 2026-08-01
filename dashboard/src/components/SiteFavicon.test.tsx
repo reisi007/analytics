@@ -34,7 +34,7 @@ describe('SiteFavicon', () => {
     expect(screen.getByText('R')).toBeInTheDocument()
   })
 
-  it('shows a globe placeholder for the empty (Alle Sites) entry without an image', () => {
+  it('shows a globe placeholder for the empty (Alle Webseiten) entry without an image', () => {
     const { container } = render(<SiteFavicon site="" />)
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('svg')).not.toBeNull()

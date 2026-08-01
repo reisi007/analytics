@@ -15,7 +15,7 @@ test('wrong password shows the error alert', async ({ page }) => {
   await new ToastHelper(page).expectToast('Login fehlgeschlagen')
 })
 
-test('correct credentials land on / and the site switcher contains "Alle Sites"', async ({ page }) => {
+test('correct credentials land on / and the site switcher contains "Alle Webseiten"', async ({ page }) => {
   await new AuthHelper(page).login('admin@e2e.local', 'password')
-  await expect(page.getByLabel('Site auswählen')).toContainText('Alle Sites')
+  await expect(page.getByLabel('Site auswählen')).toContainText('Alle Webseiten')
 })

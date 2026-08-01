@@ -20,12 +20,12 @@ export function ProtectedRoute() {
 function Brand() {
   const { site } = useSite()
   return (
-    <div className="flex items-center gap-2 px-2">
+    <div className="flex min-w-0 flex-1 items-center gap-2 px-2">
       <picture>
         <source srcSet="/favicon.svg" type="image/svg+xml" />
         <img src="/favicon.ico" alt="Analytics Logo" className="h-8 w-8 rounded-box" />
       </picture>
-      <span className="max-w-16 truncate text-xl font-semibold sm:max-w-40">{site === '' ? 'Alle Sites' : site}</span>
+      <span className="min-w-0 flex-1 truncate text-xl font-semibold">{site === '' ? 'Alle Webseiten' : site}</span>
     </div>
   )
 }
@@ -69,7 +69,7 @@ function SiteSwitcher() {
         onClick={() => setOpen((current) => !current)}
       >
         <SiteFavicon site={site} className="h-5 w-5" />
-        <span className="max-w-16 truncate sm:max-w-40">{site === '' ? 'Alle Sites' : site}</span>
+        <span className="max-w-20 truncate sm:max-w-40">{site === '' ? 'Alle Webseiten' : site}</span>
       </button>
       {open && (
         <ul
@@ -79,7 +79,7 @@ function SiteSwitcher() {
           <li>
             <button type="button" role="menuitem" className="flex items-center gap-2" onClick={() => select('')}>
               <SiteFavicon site="" />
-              <span className="truncate">Alle Sites</span>
+              <span className="truncate">Alle Webseiten</span>
             </button>
           </li>
           {sites.map((name) => (
@@ -101,6 +101,25 @@ function SiteSwitcher() {
   )
 }
 
+function LogoutIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  )
+}
+
 function AuthControls() {
   const navigate = useNavigate()
   const user = getUser()
@@ -118,12 +137,15 @@ function AuthControls() {
       {user?.email && <span className="hidden text-sm text-base-content/70 md:inline">{user.email}</span>}
       <button
         type="button"
-        className="btn btn-ghost btn-sm"
+        className="btn btn-ghost btn-sm px-2 md:px-3"
+        aria-label="Abmelden"
+        title="Abmelden"
         onClick={() => {
           void logout().then(() => navigate('/login'))
         }}
       >
-        Abmelden
+        <LogoutIcon />
+        <span className="hidden md:inline">Abmelden</span>
       </button>
     </>
   )
@@ -168,7 +190,7 @@ function DashboardLayout() {
       />
       <div className="drawer-content flex min-h-screen flex-col">
         <div className="navbar bg-base-100 shadow-sm">
-          <div className="flex flex-1 items-center gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-1">
             <label
               htmlFor="app-drawer"
               aria-label="Menü öffnen"

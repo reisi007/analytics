@@ -150,11 +150,11 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `lib/api.ts` | `fetchJson` (Bearer-Auth, 401→Login-Redirect), Typen, URL-Builder, alle API-Calls, `ApiError` |
 | `lib/auth.ts` | Token/User in localStorage (`analytics_token`, `analytics_user`), `login`/`logout`, `onAuthChange` |
 | `lib/site.ts` | `SitesConfig`-Typ (Site → Aliases) |
-| `context/SiteContext.tsx` | Default `site=''` = „Alle Sites" (keine Auto-Detection mehr), lädt `config/sites` + `stats/sites`, Site-Switcher-State, `refresh()` |
+| `context/SiteContext.tsx` | Default `site=''` = „Alle Webseiten" (keine Auto-Detection mehr), lädt `config/sites` + `stats/sites`, Site-Switcher-State, `refresh()` |
 | `context/ToastContext.tsx` | ToastProvider (daisyUI `toast toast-top toast-end`, Auto-Dismiss 5s), `useToast()` |
 | `tracker.ts` | `sendTrack` (text/plain, sendBeacon→fetch keepalive), `pageviewData`, `trackEvent`, globales `window.trackEvent` |
 | `components/ApiErrorAlert.tsx` | Fehler-UI (Badge + Message) |
-| `components/SiteFavicon.tsx` | Favicon für fremde Sites: probiert `favicon.ico` → `.svg` → `.png` → `apple-touch-icon.png` nacheinander (onError + 4s-Timeout), Fallback: Globus für „Alle Sites", Initiale wenn alle fehlschlagen |
+| `components/SiteFavicon.tsx` | Favicon für fremde Sites: probiert `favicon.ico` → `.svg` → `.png` → `apple-touch-icon.png` nacheinander (onError + 4s-Timeout), Fallback: Globus für „Alle Webseiten", Initiale wenn alle fehlschlagen |
 | `components/SeriesChart.tsx`, `StatCard.tsx` | Chart + Stat-Karten |
 | `pages/OverviewPage.tsx` | Summary-Übersicht (7/30/90 Tage), Top-Listen, `rangeParams` in Browser-TZ |
 | `pages/RealtimePage.tsx` | SSE-Client (`EventSource` mit `?token=`, Reconnect 3s, Feed) |
@@ -174,7 +174,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `tests/00-tracking.spec.ts` | Track-Seite unter eigener `*.e2e.local`-Site → Pageview/Event in Stats (1/1/1) |
 | `tests/auth.spec.ts` | Redirect unauthentifiziert, falsches/wahres Passwort |
 | `tests/realtime.spec.ts` | Realtime-Seite (Counter + Feed) + echter SSE-Push-Test (Track → Feed) |
-| `tests/sites.spec.ts` | Site-Switcher + „Alle Sites" (eigene Site) |
+| `tests/sites.spec.ts` | Site-Switcher + „Alle Webseiten" (eigene Site) |
 | `tests/sites-management.spec.ts` | Sites-CRUD über UI (Add/Edit/Delete, mit/ohne Daten, eigene Sites) |
 | `tests/security.spec.ts` | 403/401, Stream-JWT-403, Mehr-Site-Aggregation (www→Apex), Events-Seite |
 | `Caddyfile.e2e` (Repo-Root) | Caddy für E2E (fastcgi → `php:9000`, `/x7k2p.js`, SPA-Fallback) |
