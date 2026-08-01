@@ -91,8 +91,8 @@ class GmailRestTransport extends AbstractTransport
      */
     private function triggerMakeWebhook($errorMsg)
     {
-        $webhookUrl = config('mail.make_webhook.url');
-        $makeApiKey = config('mail.make_webhook.api_key');
+        $webhookUrl = config('analytics.make.webhook_url');
+        $makeApiKey = config('analytics.make.api_key');
 
         if ($webhookUrl && $makeApiKey) {
             Http::withHeaders(['x-make-apikey' => $makeApiKey])

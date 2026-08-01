@@ -28,4 +28,14 @@ final class ReportTime
     {
         return Carbon::parse($date, static::timezone());
     }
+
+    /**
+     * Parse a `Y-m-d` calendar day as a UTC day boundary (start of day).
+     * Used for API query bounds (`from`/`to`) which are UTC calendar days,
+     * independent of the report timezone.
+     */
+    public static function parseUtc(string $date): Carbon
+    {
+        return Carbon::createFromFormat('Y-m-d', $date, 'UTC')->startOfDay();
+    }
 }

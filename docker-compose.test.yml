@@ -42,6 +42,8 @@ services:
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
       ANALYTICS_TIMEZONE: ${ANALYTICS_TIMEZONE:-Europe/Berlin}
+      THROTTLE_LOGIN: 1000
+      THROTTLE_TRACK: 10000
 
   mailpit:
     image: axllent/mailpit

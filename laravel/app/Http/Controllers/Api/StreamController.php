@@ -8,12 +8,19 @@ use App\Models\PageView;
 use App\Services\StatsAggregator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StreamController extends Controller
 {
-    public function stream(Request $request, StatsAggregator $aggregator): StreamedResponse
+    public function stream(Request $request, StatsAggregator $aggregator): Response
     {
+        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
+
+        if ((auth('api')->payload()->get('scope') ?? '') !== 'stream') {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
         $site = $request->query('site');
         if (is_string($site) && $site === '') {
             $site = null;

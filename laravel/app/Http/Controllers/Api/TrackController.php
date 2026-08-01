@@ -8,6 +8,7 @@ use App\Models\PageView;
 use App\Support\SiteDetector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class TrackController extends Controller
 {
@@ -33,7 +34,15 @@ class TrackController extends Controller
             'payload' => ['nullable', 'array'],
         ])->validate();
 
-        $sessionHash = $this->sessionHash($request);
+        $eventPayload = $validated['payload'] ?? [];
+        if ($this->payloadTooDeep($eventPayload)) {
+            throw ValidationException::withMessages(['payload' => 'payload.too_deep']);
+        }
+        if (mb_strlen(json_encode($eventPayload, JSON_UNESCAPED_UNICODE)) > 65536) {
+            throw ValidationException::withMessages(['payload' => 'payload.too_large']);
+        }
+
+        $sessionHash = $this->sessionHash($site, $request);
 
         if ($validated['type'] === 'pageview') {
             PageView::create([
@@ -51,12 +60,12 @@ class TrackController extends Controller
                 'site' => $site,
                 'name' => $validated['name'],
                 'url' => $validated['url'],
-                'payload' => $validated['payload'] ?? [],
+                'payload' => $eventPayload,
                 'session_hash' => $sessionHash,
             ]);
         }
 
-        return response()->json(null, 204, ['Access-Control-Allow-Origin' => $this->refererOrigin($request)]);
+        return response()->json(null, 204);
     }
 
     /**
@@ -76,28 +85,28 @@ class TrackController extends Controller
         return is_array($decoded) ? $decoded : $request->all();
     }
 
-    private function sessionHash(Request $request): string
+    private function sessionHash(string $site, Request $request): string
     {
-        $raw = $request->ip().'|'.($request->userAgent() ?? '').'|'.now()->toDateString();
+        $raw = $site.'|'.$request->ip().'|'.($request->userAgent() ?? '').'|'.now()->toDateString();
 
-        return hash('sha256', $raw);
+        return hash_hmac('sha256', $raw, (string) config('app.key'));
     }
 
-    /**
-     * Full origin (scheme + host) of the Referer header, echoed back as the
-     * CORS allow-origin value for the tracking response.
-     */
-    private function refererOrigin(Request $request): string
+    private function payloadTooDeep(array $payload): bool
     {
-        $referer = $request->headers->get('referer');
+        return $this->payloadDepth($payload) > 5;
+    }
 
-        if ($referer === null || $referer === '') {
-            return '*';
+    private function payloadDepth(array $value, int $depth = 1): int
+    {
+        $max = $depth;
+
+        foreach ($value as $item) {
+            if (is_array($item)) {
+                $max = max($max, $this->payloadDepth($item, $depth + 1));
+            }
         }
 
-        $scheme = (string) (parse_url($referer, PHP_URL_SCHEME) ?? '');
-        $host = (string) (parse_url($referer, PHP_URL_HOST) ?? '');
-
-        return $scheme === '' || $host === '' ? '*' : $scheme.'://'.$host;
+        return $max;
     }
 }

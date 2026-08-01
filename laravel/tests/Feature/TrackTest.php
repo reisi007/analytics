@@ -6,6 +6,8 @@ use App\Models\PageView;
 use App\Models\Site;
 use App\Support\SiteDetector;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class TrackTest extends TestCase
@@ -122,5 +124,116 @@ class TrackTest extends TestCase
             ->assertHeaderMissing('Access-Control-Allow-Origin');
 
         $this->assertDatabaseCount('pageviews', 0);
+    }
+
+    public function test_text_plain_body_is_parsed(): void
+    {
+        $this->call('POST', '/ingest/track', [], [], [], [
+            'HTTP_REFERER' => 'https://reisinger.pictures/',
+            'CONTENT_TYPE' => 'text/plain',
+        ], json_encode([
+            'type' => 'pageview',
+            'url' => '/plain',
+            'title' => 'Plain',
+        ]))->assertStatus(204);
+
+        $this->assertDatabaseHas('pageviews', [
+            'site' => 'reisinger.pictures',
+            'url' => '/plain',
+        ]);
+    }
+
+    public function test_missing_referrer_is_blocked(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/x',
+        ])->assertStatus(403);
+
+        $this->assertDatabaseCount('pageviews', 0);
+    }
+
+    public function test_empty_referrer_is_blocked(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/x',
+        ], ['Referer' => ''])->assertStatus(403);
+
+        $this->assertDatabaseCount('pageviews', 0);
+    }
+
+    public function test_cors_header_includes_port(): void
+    {
+        Site::create([
+            'site' => 'localhost',
+            'aliases' => ['localhost'],
+        ]);
+        SiteDetector::flush();
+
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'http://localhost:5173/'])
+            ->assertStatus(204)
+            ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    }
+
+    public function test_payload_too_deep_returns_422(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'event',
+            'name' => 'click',
+            'url' => '/foo',
+            'payload' => ['a' => ['b' => ['c' => ['d' => ['e' => ['f' => 1]]]]]],
+        ], ['Referer' => 'https://all-the.rest/'])
+            ->assertStatus(422)
+            ->assertHeader('Access-Control-Allow-Origin', 'https://all-the.rest');
+    }
+
+    public function test_payload_too_large_returns_422(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'event',
+            'name' => 'click',
+            'url' => '/foo',
+            'payload' => ['data' => str_repeat('x', 70000)],
+        ], ['Referer' => 'https://all-the.rest/'])
+            ->assertStatus(422)
+            ->assertHeader('Access-Control-Allow-Origin', 'https://all-the.rest');
+    }
+
+    public function test_schema_has_no_ip_column(): void
+    {
+        $this->assertFalse(Schema::hasColumn('pageviews', 'ip'));
+        $this->assertFalse(Schema::hasColumn('events', 'ip'));
+    }
+
+    public function test_session_hash_differs_across_days(): void
+    {
+        $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/a',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
+
+        $this->travelTo(Carbon::parse('2026-07-02 10:00:00'));
+
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/b',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
+
+        $this->assertSame(2, PageView::query()->orderBy('id')->pluck('session_hash')->unique()->count());
+    }
+
+    public function test_token_not_leaked_in_error_response(): void
+    {
+        $token = 'secrettokenvalue123';
+
+        $this->getJson("/ingest/stats/summary?token={$token}")
+            ->assertStatus(401)
+            ->assertDontSee($token);
     }
 }

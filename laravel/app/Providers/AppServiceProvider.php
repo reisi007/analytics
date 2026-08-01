@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\Mail\Transports\GmailRestTransport;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute((int) config('analytics.rate_limit.login'))->by($request->ip()));
+        RateLimiter::for('track', fn (Request $request) => Limit::perMinute((int) config('analytics.rate_limit.track'))->by($request->ip()));
+
         // Den Custom Gmail-REST-Transport in Laravel's Mail-Manager integrieren
         Mail::extend('gmail_rest', function (array $config) {
             return new GmailRestTransport(

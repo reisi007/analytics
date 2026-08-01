@@ -10,24 +10,26 @@ use App\Services\StatsAggregator;
 use App\Support\ReportTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class StatsController extends Controller
 {
     public function summary(Request $request, StatsAggregator $aggregator): JsonResponse
     {
-        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
+        $request->validate([
+            'site' => ['nullable', 'string', 'max:255'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
         $site = $request->input('site') ?: null;
 
         $from = $request->filled('from')
-            ? ReportTime::parse((string) $request->query('from'))
-            : ReportTime::today()->subDays(29);
+            ? ReportTime::parseUtc((string) $request->query('from'))
+            : Carbon::today('UTC')->subDays(29);
         $to = $request->filled('to')
-            ? ReportTime::parse((string) $request->query('to'))
-            : ReportTime::today();
-
-        $from = $from->startOfDay();
-        $to = $to->endOfDay();
+            ? ReportTime::parseUtc((string) $request->query('to'))->endOfDay()
+            : Carbon::today('UTC')->endOfDay();
 
         $key = 'stats.summary.'.ReportTime::timezone().'.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d');
 
@@ -36,21 +38,22 @@ class StatsController extends Controller
 
     public function events(Request $request, StatsAggregator $aggregator): JsonResponse
     {
-        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
+        $request->validate([
+            'site' => ['nullable', 'string', 'max:255'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
         $site = $request->input('site') ?: null;
 
         $from = $request->filled('from')
-            ? ReportTime::parse((string) $request->query('from'))
-            : ReportTime::today()->subDays(29);
+            ? ReportTime::parseUtc((string) $request->query('from'))
+            : Carbon::today('UTC')->subDays(29);
         $to = $request->filled('to')
-            ? ReportTime::parse((string) $request->query('to'))
-            : ReportTime::today();
+            ? ReportTime::parseUtc((string) $request->query('to'))->endOfDay()
+            : Carbon::today('UTC')->endOfDay();
 
         $name = $request->filled('name') ? (string) $request->query('name') : null;
         $page = max(1, (int) $request->query('page', 1));
-
-        $from = $from->startOfDay();
-        $to = $to->endOfDay();
 
         $key = 'stats.events.'.ReportTime::timezone().'.'.($site ?? 'all').'.'.$from->format('Y-m-d').'.'.$to->format('Y-m-d').'.'.($name ?? 'all').'.'.$page;
 
@@ -59,6 +62,7 @@ class StatsController extends Controller
 
     public function realtime(Request $request, StatsAggregator $aggregator): JsonResponse
     {
+        $request->validate(['site' => ['nullable', 'string', 'max:255']]);
         $site = $request->query('site');
         if (is_string($site) && $site === '') {
             $site = null;

@@ -53,7 +53,7 @@ class TimezoneTest extends TestCase
             ->assertJsonPath('series.0.pageviews', 1);
     }
 
-    public function test_berlin_buckets_midnight_event_same_local_day(): void
+    public function test_from_to_are_utc_calendar_days_with_berlin_series_buckets(): void
     {
         config(['analytics.timezone' => 'Europe/Berlin']);
         $token = $this->login();
@@ -66,14 +66,25 @@ class TimezoneTest extends TestCase
             'created_at' => Carbon::parse('2026-07-30 22:30:00', 'UTC'),
         ]);
 
-        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-31&to=2026-07-31', $this->authedHeaders($token))
+        // from/to sind UTC-Kalendertage: 22:30 UTC (00:30 Berlin am Folgetag)
+        // liegt im UTC-Tag 2026-07-30 und wird über from/to gezählt.
+        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-30&to=2026-07-30', $this->authedHeaders($token))
             ->assertOk()
-            ->assertJsonPath('totals.pageviews', 1)
-            ->assertJsonPath('series.0.date', '2026-07-31')
-            ->assertJsonPath('series.0.pageviews', 1);
+            ->assertJsonPath('totals.pageviews', 1);
+
+        // Die Series-Gruppierung bleibt Report-TZ (Europe/Berlin): der Treffer
+        // um 22:30 UTC wird als 2026-07-31 gebucktet, auch wenn die Query-Bounds
+        // in UTC liegen.
+        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-30&to=2026-07-31', $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonCount(2, 'series')
+            ->assertJsonPath('series.0.date', '2026-07-30')
+            ->assertJsonPath('series.0.pageviews', 0)
+            ->assertJsonPath('series.1.date', '2026-07-31')
+            ->assertJsonPath('series.1.pageviews', 1);
     }
 
-    public function test_berlin_range_filter_respects_local_midnight(): void
+    public function test_berlin_range_filter_respects_utc_midnight(): void
     {
         config(['analytics.timezone' => 'Europe/Berlin']);
         $token = $this->login();
@@ -86,11 +97,12 @@ class TimezoneTest extends TestCase
             'created_at' => Carbon::parse('2026-07-30 22:00:00', 'UTC'),
         ]);
 
-        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-31&to=2026-07-31', $this->authedHeaders($token))
+        // 22:00 UTC liegt im UTC-Tag 2026-07-30 (in Berlin bereits der 31.).
+        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-30&to=2026-07-30', $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonPath('totals.pageviews', 1);
 
-        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-30&to=2026-07-30', $this->authedHeaders($token))
+        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=2026-07-31&to=2026-07-31', $this->authedHeaders($token))
             ->assertOk()
             ->assertJsonPath('totals.pageviews', 0);
     }

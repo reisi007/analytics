@@ -28,6 +28,10 @@ class StreamTest extends TestCase
             'password' => 'password',
         ])->assertOk()->json('token');
 
+        $streamToken = $this->postJson('/ingest/auth/stream-token', [], [
+            'Authorization' => "Bearer {$token}",
+        ])->assertOk()->json('token');
+
         PageView::create([
             'site' => 'reisinger.pictures',
             'url' => '/stream-me',
@@ -36,7 +40,7 @@ class StreamTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $response = $this->get("/ingest/stream?token={$token}&site=reisinger.pictures");
+        $response = $this->get("/ingest/stream?token={$streamToken}&site=reisinger.pictures");
 
         $response->assertStatus(200);
         $this->assertStringStartsWith('text/event-stream', (string) $response->headers->get('content-type'));

@@ -217,4 +217,49 @@ class StatsTest extends TestCase
             ->json('totals.pageviews');
         $this->assertSame(2, $third);
     }
+
+    public function test_summary_rejects_invalid_from_format(): void
+    {
+        $token = $this->login();
+
+        $this->getJson('/ingest/stats/summary?site=reisinger.pictures&from=abc', $this->authedHeaders($token))
+            ->assertStatus(422);
+    }
+
+    public function test_realtime_rejects_site_array(): void
+    {
+        $token = $this->login();
+
+        $this->getJson('/ingest/stats/realtime?site[]=reisinger.pictures', $this->authedHeaders($token))
+            ->assertStatus(422);
+    }
+
+    public function test_realtime_recent_includes_events_from_all_sites_when_site_null(): void
+    {
+        $token = $this->login();
+
+        Event::create([
+            'site' => 'reisinger.pictures',
+            'name' => 'click-a',
+            'url' => '/a',
+            'payload' => [],
+            'session_hash' => 'hash-a',
+            'created_at' => now()->subMinutes(2),
+        ]);
+
+        Event::create([
+            'site' => 'dev.reisinger.pictures',
+            'name' => 'click-b',
+            'url' => '/b',
+            'payload' => [],
+            'session_hash' => 'hash-b',
+            'created_at' => now()->subMinutes(1),
+        ]);
+
+        $this->getJson('/ingest/stats/realtime?minutes=60', $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('events', 2)
+            ->assertJsonPath('recent.0.name', 'click-b')
+            ->assertJsonPath('recent.1.name', 'click-a');
+    }
 }

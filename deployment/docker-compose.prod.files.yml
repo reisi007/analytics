@@ -75,8 +75,8 @@ services:
       MAKE_API_KEY: ${MAKE_API_KEY:-}
     command: >
       sh -c "if [ \"$$APP_ENV\" = \"production\" ]; then
-      if [ -z \"$$APP_KEY\" ] || [ -z \"$$JWT_SECRET\" ]; then
-      echo 'FATAL: APP_KEY/JWT_SECRET fehlt'; exit 1; fi; fi;
+      if [ -z \"$$APP_KEY\" ] || [ -z \"$$JWT_SECRET\" ] || [ -z \"$$ANALYTICS_ADMIN_EMAIL\" ] || [ -z \"$$ANALYTICS_ADMIN_PASSWORD\" ]; then
+      echo 'FATAL: APP_KEY/JWT_SECRET/ANALYTICS_ADMIN_EMAIL/ANALYTICS_ADMIN_PASSWORD fehlt'; exit 1; fi; fi;
       mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache;
       chown -R www-data:www-data /var/www/html;
       php artisan migrate --force;

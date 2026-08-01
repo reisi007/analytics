@@ -8,13 +8,14 @@ use App\Http\Controllers\Api\StreamController;
 use App\Http\Controllers\Api\TrackController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login')->name('auth.login');
 
-Route::post('/track', [TrackController::class, 'store'])->name('track');
+Route::post('/track', [TrackController::class, 'store'])->middleware(['throttle:track', 'track.cors'])->name('track');
 
 Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
     Route::post('/auth/me', [AuthController::class, 'me'])->name('auth.me');
+    Route::post('/auth/stream-token', [AuthController::class, 'streamToken'])->name('auth.stream-token');
 
     Route::get('/config/sites', [ConfigController::class, 'sites'])->name('config.sites');
 

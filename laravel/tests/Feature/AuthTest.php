@@ -126,7 +126,11 @@ class AuthTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $response = $this->get("/ingest/stream?token={$this->token}&site=reisinger.pictures");
+        $streamToken = $this->postJson('/ingest/auth/stream-token', [], [
+            'Authorization' => "Bearer {$this->token}",
+        ])->assertOk()->json('token');
+
+        $response = $this->get("/ingest/stream?token={$streamToken}&site=reisinger.pictures");
 
         $response->assertStatus(200);
         $this->assertStringStartsWith('text/event-stream', (string) $response->headers->get('content-type'));
@@ -134,6 +138,26 @@ class AuthTest extends TestCase
         $content = $response->streamedContent();
 
         $this->assertStringContainsString('snapshot', $content);
+    }
+
+    public function test_stream_rejects_full_jwt(): void
+    {
+        $this->login();
+
+        $this->get("/ingest/stream?token={$this->token}&site=reisinger.pictures")
+            ->assertStatus(403);
+    }
+
+    public function test_stream_requires_token(): void
+    {
+        $this->get('/ingest/stream')
+            ->assertStatus(401);
+    }
+
+    public function test_stream_token_endpoint_requires_auth(): void
+    {
+        $this->postJson('/ingest/auth/stream-token')
+            ->assertStatus(401);
     }
 
     public function test_logout_invalidates_token(): void

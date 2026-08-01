@@ -152,7 +152,7 @@ class StatsAggregator
             ]);
 
         $events = Event::query()
-            ->where('site', $site)
+            ->when($site, fn ($q) => $q->where('site', $site))
             ->where('created_at', '>=', $since)
             ->latest('id')
             ->limit(5)

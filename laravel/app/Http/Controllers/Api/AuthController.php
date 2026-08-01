@@ -32,6 +32,16 @@ class AuthController extends Controller
         return response()->json(auth('api')->user());
     }
 
+    public function streamToken(): JsonResponse
+    {
+        $token = auth('api')
+            ->claims(['scope' => 'stream'])
+            ->setTTL(1)
+            ->login(auth('api')->user());
+
+        return response()->json(['token' => $token]);
+    }
+
     public function logout(Request $request): JsonResponse
     {
         auth('api')->logout();
