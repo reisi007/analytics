@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router'
 import { SiteFavicon } from './components/SiteFavicon'
@@ -25,7 +27,7 @@ function Brand() {
         <source srcSet="/favicon.svg" type="image/svg+xml" />
         <img src="/favicon.ico" alt="Analytics Logo" className="h-8 w-8 rounded-box" />
       </picture>
-      <span className="min-w-0 flex-1 truncate text-xl font-semibold">{site === '' ? 'Alle Webseiten' : site}</span>
+      <span className="min-w-0 flex-1 truncate text-xl font-semibold">{site === '' ? t`Alle Webseiten` : site}</span>
     </div>
   )
 }
@@ -63,13 +65,13 @@ function SiteSwitcher() {
       <button
         type="button"
         className="btn btn-sm btn-ghost gap-2"
-        aria-label="Site auswählen"
+        aria-label={t`Site auswählen`}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
         <SiteFavicon site={site} className="h-5 w-5" />
-        <span className="max-w-20 truncate sm:max-w-40">{site === '' ? 'Alle Webseiten' : site}</span>
+        <span className="max-w-20 truncate sm:max-w-40">{site === '' ? t`Alle Webseiten` : site}</span>
       </button>
       {open && (
         <ul
@@ -79,7 +81,7 @@ function SiteSwitcher() {
           <li>
             <button type="button" role="menuitem" className="flex items-center gap-2" onClick={() => select('')}>
               <SiteFavicon site="" />
-              <span className="truncate">Alle Webseiten</span>
+              <span className="truncate"><Trans>Alle Webseiten</Trans></span>
             </button>
           </li>
           {sites.map((name) => (
@@ -127,7 +129,7 @@ function AuthControls() {
   if (!isAuthenticated()) {
     return (
       <NavLink to="/login" className="btn btn-ghost btn-sm">
-        Anmelden
+        <Trans>Anmelden</Trans>
       </NavLink>
     )
   }
@@ -138,25 +140,27 @@ function AuthControls() {
       <button
         type="button"
         className="btn btn-ghost btn-sm px-2 md:px-3"
-        aria-label="Abmelden"
-        title="Abmelden"
+        aria-label={t`Abmelden`}
+        title={t`Abmelden`}
         onClick={() => {
           void logout().then(() => navigate('/login'))
         }}
       >
         <LogoutIcon />
-        <span className="hidden md:inline">Abmelden</span>
+        <span className="hidden md:inline"><Trans>Abmelden</Trans></span>
       </button>
     </>
   )
 }
 
-const NAV_ITEMS = [
-  { to: '/', end: true, label: 'Übersicht' },
-  { to: '/realtime', end: false, label: 'Echtzeit' },
-  { to: '/events', end: false, label: 'Events' },
-  { to: '/sites', end: false, label: 'Sites' },
-]
+function navItems() {
+  return [
+    { to: '/', end: true, label: t`Übersicht` },
+    { to: '/realtime', end: false, label: t`Echtzeit` },
+    { to: '/events', end: false, label: t`Events` },
+    { to: '/sites', end: false, label: t`Sites` },
+  ]
+}
 
 function HamburgerIcon() {
   return (
@@ -178,6 +182,7 @@ function HamburgerIcon() {
 
 function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const items = navItems()
 
   return (
     <div className="drawer min-h-screen bg-base-200">
@@ -193,7 +198,7 @@ function DashboardLayout() {
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <label
               htmlFor="app-drawer"
-              aria-label="Menü öffnen"
+              aria-label={t`Menü öffnen`}
               className="btn btn-ghost btn-square drawer-button lg:hidden"
             >
               <HamburgerIcon />
@@ -202,7 +207,7 @@ function DashboardLayout() {
           </div>
           <div className="flex-none">
             <ul className="menu menu-horizontal hidden px-1 lg:flex">
-              {NAV_ITEMS.map((item) => (
+              {items.map((item) => (
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
@@ -223,9 +228,9 @@ function DashboardLayout() {
         </main>
       </div>
       <div className="drawer-side text-base-content lg:hidden">
-        <label htmlFor="app-drawer" aria-label="Menü schließen" className="drawer-overlay" />
+        <label htmlFor="app-drawer" aria-label={t`Menü schließen`} className="drawer-overlay" />
         <ul className="menu min-h-full w-72 gap-1 bg-base-100 p-4">
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <li key={item.to}>
               <NavLink
                 to={item.to}

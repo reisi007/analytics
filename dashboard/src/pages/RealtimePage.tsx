@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useEffect, useRef, useState } from 'react'
 import { StatCard } from '../components/StatCard'
 import { useSite } from '../context/SiteContext'
@@ -62,7 +64,7 @@ export function RealtimePage() {
         if (err instanceof ApiError && err.status === 401) {
           return
         }
-        setError('Verbindung getrennt – erneuter Versuch in 3s…')
+        setError(t`Verbindung getrennt – erneuter Versuch in 3s…`)
         retryTimer.current = setTimeout(() => void connect(), 3000)
         return
       }
@@ -117,7 +119,7 @@ export function RealtimePage() {
       source.addEventListener('error', () => {
         source?.close()
         setConnected(false)
-        setError('Verbindung getrennt – erneuter Versuch in 3s…')
+        setError(t`Verbindung getrennt – erneuter Versuch in 3s…`)
         retryTimer.current = setTimeout(() => void connect(), 3000)
       })
     }
@@ -134,31 +136,31 @@ export function RealtimePage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">Echtzeit</h1>
-        <span className={`badge ${connected ? 'badge-success' : 'badge-error'}`}>{connected ? 'Live' : 'Getrennt'}</span>
-        {realtime && <span className="badge badge-ghost">Fenster: {realtime.window_minutes} min</span>}
+        <h1 className="text-lg font-semibold"><Trans>Echtzeit</Trans></h1>
+        <span className={`badge ${connected ? 'badge-success' : 'badge-error'}`}>{connected ? t`Live` : t`Getrennt`}</span>
+        {realtime && <span className="badge badge-ghost">{t`Fenster: ${realtime.window_minutes} min`}</span>}
       </div>
 
       {error && <div className="alert alert-warning">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard title="Seitenaufrufe" value={realtime?.pageviews ?? 0} />
-        <StatCard title="Unique Besucher" value={realtime?.unique ?? 0} />
-        <StatCard title="Events" value={realtime?.events ?? 0} />
+        <StatCard title={t`Seitenaufrufe`} value={realtime?.pageviews ?? 0} />
+        <StatCard title={t`Unique Besucher`} value={realtime?.unique ?? 0} />
+        <StatCard title={t`Events`} value={realtime?.events ?? 0} />
       </div>
 
       <div className="card bg-base-100 shadow-sm">
         <div className="card-body">
-          <h2 className="card-title">Aktuelle Aktivität</h2>
+          <h2 className="card-title"><Trans>Aktuelle Aktivität</Trans></h2>
           {feed.length === 0 ? (
-            <p className="text-sm text-base-content/60">Noch keine Aktivität in diesem Fenster.</p>
+            <p className="text-sm text-base-content/60"><Trans>Noch keine Aktivität in diesem Fenster.</Trans></p>
           ) : (
             <ul className="menu menu-sm rounded-box bg-base-200 w-full">
               {feed.map((entry, index) => (
                 <li key={`${entry.time}-${index}`}>
                   <div className="flex items-center gap-2">
                     <span className={`badge badge-xs ${entry.type === 'event' ? 'badge-secondary' : 'badge-primary'}`}>
-                      {entry.type === 'event' ? 'Event' : 'Pageview'}
+                      {entry.type === 'event' ? t`Event` : t`Pageview`}
                     </span>
                     <span className="tooltip font-mono text-xs inline-block max-w-[24rem] truncate" data-tip={formatTime(entry.time)} title={entry.url}>
                       {entry.url}

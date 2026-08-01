@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import type { SeriesPoint } from '../lib/api'
 
 const HEIGHT_CLASSES = [
@@ -35,7 +36,7 @@ export function SeriesChart({ series }: { series: SeriesPoint[] }) {
   return (
     <div className="card bg-base-100 shadow-sm">
       <div className="card-body">
-        <h2 className="card-title">Seitenaufrufe pro Tag</h2>
+        <h2 className="card-title"><Trans>Seitenaufrufe pro Tag</Trans></h2>
         <div className="flex h-40 items-end gap-1">
           {series.map((point) => (
             <div

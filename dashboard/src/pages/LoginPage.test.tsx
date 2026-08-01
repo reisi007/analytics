@@ -1,11 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from '../context/ToastContext'
+import { renderWithProviders } from '../test/render'
 import { LoginPage } from './LoginPage'
 
 function renderLogin() {
-  return render(
+  return renderWithProviders(
     <ToastProvider>
       <MemoryRouter initialEntries={['/login']}>
         <Routes>

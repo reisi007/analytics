@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/check-i18n.mjs",
     "build": "pnpm build:app && pnpm build:tracker",
     "build:app": "vite build",
     "build:tracker": "vite build --config vite.tracker.config.ts",
@@ -15,9 +16,16 @@
     "test:coverage": "vitest run --coverage",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "lingui:extract": "lingui extract",
+    "lingui:compile": "lingui compile",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
+    "@lingui/babel-plugin-lingui-macro": "^6.6.0",
+    "@lingui/core": "^6.6.0",
+    "@lingui/react": "^6.6.0",
+    "@lingui/vite-plugin": "^6.6.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.3.0"
@@ -28,6 +36,9 @@
     "@babel/plugin-syntax-jsx": "^8.0.1",
     "@babel/preset-typescript": "^8.0.1",
     "@eslint/js": "^10.0.1",
+    "@lingui/cli": "6.6.0",
+    "@lingui/format-po": "6.6.0",
+    "@rolldown/plugin-babel": "0.2.3",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",

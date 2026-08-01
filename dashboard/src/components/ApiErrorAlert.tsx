@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro'
 import { ApiError } from '../lib/api'
 
 interface ApiErrorAlertProps {
@@ -13,7 +14,7 @@ export function ApiErrorAlert({ error }: ApiErrorAlertProps) {
 
   const apiError = isApiError(error) ? error : null
   const status = apiError?.status
-  const message = error instanceof Error ? error.message : 'Unbekannter Fehler'
+  const message = error instanceof Error ? error.message : t`Unbekannter Fehler`
 
   return (
     <div role="alert" className="alert alert-error alert-vertical sm:alert-horizontal">

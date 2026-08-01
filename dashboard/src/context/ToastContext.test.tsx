@@ -1,5 +1,6 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { renderWithProviders } from '../test/render'
 import { ToastProvider, useToast } from './ToastContext'
 
 function TestConsumer() {
@@ -23,7 +24,7 @@ function OutsideConsumer() {
 
 describe('ToastContext', () => {
   it('renders toasts with the correct alert class and container position', () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <ToastProvider>
         <TestConsumer />
       </ToastProvider>,
@@ -50,7 +51,7 @@ describe('ToastContext', () => {
   it('auto-dismisses a toast after 5000 ms', () => {
     vi.useFakeTimers()
     try {
-      render(
+      renderWithProviders(
         <ToastProvider>
           <TestConsumer />
         </ToastProvider>,
@@ -70,7 +71,7 @@ describe('ToastContext', () => {
   })
 
   it('dismisses a toast manually via the close button', () => {
-    render(
+    renderWithProviders(
       <ToastProvider>
         <TestConsumer />
       </ToastProvider>,
@@ -85,6 +86,6 @@ describe('ToastContext', () => {
   })
 
   it('throws when used outside the provider', () => {
-    expect(() => render(<OutsideConsumer />)).toThrow('useToast muss innerhalb von <ToastProvider> verwendet werden')
+    expect(() => renderWithProviders(<OutsideConsumer />)).toThrow('useToast muss innerhalb von <ToastProvider> verwendet werden')
   })
 })

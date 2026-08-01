@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SiteProvider } from '../context/SiteContext'
 import { ToastProvider } from '../context/ToastContext'
 import type { SiteRow } from '../lib/api'
+import { renderWithProviders } from '../test/render'
 import { SitesPage } from './SitesPage'
 
 const sitesFixture: SiteRow[] = [
@@ -26,7 +27,7 @@ describe('SitesPage', () => {
   })
 
   const renderPage = () =>
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <ToastProvider>
           <SiteProvider>

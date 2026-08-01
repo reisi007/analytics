@@ -1,6 +1,7 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderWithProviders } from '../test/render'
 import { RealtimePage } from './RealtimePage'
 
 class MockEventSource {
@@ -56,7 +57,7 @@ describe('RealtimePage', () => {
   })
 
   it('fetches a stream token and opens an SSE stream for the all-sites default', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <RealtimePage />
       </MemoryRouter>,
@@ -70,7 +71,7 @@ describe('RealtimePage', () => {
   })
 
   it('updates counters from snapshot items and the feed from activity messages', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <RealtimePage />
       </MemoryRouter>,
@@ -101,7 +102,7 @@ describe('RealtimePage', () => {
   })
 
   it('seeds the feed from the snapshot recent activity', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <RealtimePage />
       </MemoryRouter>,
@@ -128,7 +129,7 @@ describe('RealtimePage', () => {
   it('reconnects after an error event', async () => {
     vi.useFakeTimers()
     try {
-      render(
+      renderWithProviders(
         <MemoryRouter>
           <RealtimePage />
         </MemoryRouter>,
@@ -154,7 +155,7 @@ describe('RealtimePage', () => {
   it('resumes after reconnect via last ids and deduplicates feed entries', async () => {
     vi.useFakeTimers()
     try {
-      render(
+      renderWithProviders(
         <MemoryRouter>
           <RealtimePage />
         </MemoryRouter>,
@@ -220,7 +221,7 @@ describe('RealtimePage', () => {
       json: async () => ({ message: 'Unauthenticated.' }),
     })
 
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <RealtimePage />
       </MemoryRouter>,

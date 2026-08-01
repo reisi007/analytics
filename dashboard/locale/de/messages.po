@@ -1,0 +1,315 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-08-01 13:22+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: de\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/pages/EventsPage.tsx
+msgid "{from}–{to} von {total}"
+msgstr "{from}–{to} von {total}"
+
+#: src/pages/OverviewPage.tsx
+msgid "30 Tage"
+msgstr "30 Tage"
+
+#: src/pages/OverviewPage.tsx
+msgid "7 Tage"
+msgstr "7 Tage"
+
+#: src/pages/OverviewPage.tsx
+msgid "90 Tage"
+msgstr "90 Tage"
+
+#: src/pages/SitesPage.tsx
+msgid "Abbrechen"
+msgstr "Abbrechen"
+
+#: src/App.tsx
+msgid "Abmelden"
+msgstr "Abmelden"
+
+#: src/pages/SitesPage.tsx
+msgid "Aktionen"
+msgstr "Aktionen"
+
+#: src/pages/RealtimePage.tsx
+msgid "Aktuelle Aktivität"
+msgstr "Aktuelle Aktivität"
+
+#: src/pages/SitesPage.tsx
+msgid "Aliases"
+msgstr "Aliases"
+
+#: src/pages/SitesPage.tsx
+msgid "Aliases (kommagetrennt)"
+msgstr "Aliases (kommagetrennt)"
+
+#: src/pages/SitesPage.tsx
+msgid "Alle Aliases sind ungültig"
+msgstr "Alle Aliases sind ungültig"
+
+#: src/App.tsx
+#: src/pages/OverviewPage.tsx
+msgid "Alle Webseiten"
+msgstr "Alle Webseiten"
+
+#: src/pages/LoginPage.tsx
+msgid "Analytics"
+msgstr "Analytics"
+
+#: src/App.tsx
+#: src/pages/LoginPage.tsx
+msgid "Anmelden"
+msgstr "Anmelden"
+
+#: src/pages/LoginPage.tsx
+msgid "Anmelden…"
+msgstr "Anmelden…"
+
+#: src/pages/LoginPage.tsx
+msgid "Anmeldung"
+msgstr "Anmeldung"
+
+#: src/pages/OverviewPage.tsx
+msgid "Anzahl"
+msgstr "Anzahl"
+
+#: src/pages/OverviewPage.tsx
+msgid "Aufrufe"
+msgstr "Aufrufe"
+
+#: src/pages/SitesPage.tsx
+msgid "Bearbeiten"
+msgstr "Bearbeiten"
+
+#: src/pages/LoginPage.tsx
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#: src/App.tsx
+#: src/pages/RealtimePage.tsx
+msgid "Echtzeit"
+msgstr "Echtzeit"
+
+#: src/pages/SitesPage.tsx
+msgid "Erstellt"
+msgstr "Erstellt"
+
+#: src/pages/OverviewPage.tsx
+#: src/pages/RealtimePage.tsx
+msgid "Event"
+msgstr "Event"
+
+#: src/pages/EventsPage.tsx
+msgid "Event-Name filtern"
+msgstr "Event-Name filtern"
+
+#: src/App.tsx
+#: src/pages/EventsPage.tsx
+#: src/pages/OverviewPage.tsx
+#: src/pages/RealtimePage.tsx
+msgid "Events"
+msgstr "Events"
+
+#: src/pages/SitesPage.tsx
+msgid "Fehler"
+msgstr "Fehler"
+
+#. placeholder {0}: realtime.window_minutes
+#: src/pages/RealtimePage.tsx
+msgid "Fenster: {0} min"
+msgstr "Fenster: {0} min"
+
+#: src/pages/SitesPage.tsx
+msgid "Getrackte Daten mitlöschen (unwiderruflich)"
+msgstr "Getrackte Daten mitlöschen (unwiderruflich)"
+
+#: src/pages/RealtimePage.tsx
+msgid "Getrennt"
+msgstr "Getrennt"
+
+#: src/pages/EventsPage.tsx
+msgid "Keine Events"
+msgstr "Keine Events"
+
+#: src/pages/RealtimePage.tsx
+msgid "Live"
+msgstr "Live"
+
+#: src/pages/SitesPage.tsx
+msgid "Löschen"
+msgstr "Löschen"
+
+#: src/App.tsx
+msgid "Menü öffnen"
+msgstr "Menü öffnen"
+
+#: src/App.tsx
+msgid "Menü schließen"
+msgstr "Menü schließen"
+
+#: src/pages/EventsPage.tsx
+msgid "Name"
+msgstr "Name"
+
+#: src/pages/SitesPage.tsx
+msgid "Name erforderlich"
+msgstr "Name erforderlich"
+
+#: src/pages/SitesPage.tsx
+msgid "Neue Site"
+msgstr "Neue Site"
+
+#: src/pages/RealtimePage.tsx
+msgid "Noch keine Aktivität in diesem Fenster."
+msgstr "Noch keine Aktivität in diesem Fenster."
+
+#: src/pages/RealtimePage.tsx
+msgid "Pageview"
+msgstr "Pageview"
+
+#: src/pages/LoginPage.tsx
+msgid "Passwort"
+msgstr "Passwort"
+
+#: src/pages/EventsPage.tsx
+msgid "Payload"
+msgstr "Payload"
+
+#: src/pages/OverviewPage.tsx
+msgid "Referrer"
+msgstr "Referrer"
+
+#: src/context/ToastContext.tsx
+msgid "Schließen"
+msgstr "Schließen"
+
+#: src/pages/OverviewPage.tsx
+msgid "Seite"
+msgstr "Seite"
+
+#. placeholder {0}: result?.current_page ?? 1
+#: src/pages/EventsPage.tsx
+msgid "Seite {0}"
+msgstr "Seite {0}"
+
+#: src/pages/OverviewPage.tsx
+#: src/pages/RealtimePage.tsx
+msgid "Seitenaufrufe"
+msgstr "Seitenaufrufe"
+
+#: src/components/SeriesChart.tsx
+msgid "Seitenaufrufe pro Tag"
+msgstr "Seitenaufrufe pro Tag"
+
+#: src/pages/SitesPage.tsx
+msgid "Site"
+msgstr "Site"
+
+#. placeholder {0}: row.site
+#: src/pages/SitesPage.tsx
+msgid "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+msgstr "Site „{0}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten."
+
+#: src/pages/SitesPage.tsx
+msgid "Site aktualisiert"
+msgstr "Site aktualisiert"
+
+#: src/pages/SitesPage.tsx
+msgid "Site angelegt"
+msgstr "Site angelegt"
+
+#: src/App.tsx
+msgid "Site auswählen"
+msgstr "Site auswählen"
+
+#: src/pages/SitesPage.tsx
+msgid "Site bearbeiten"
+msgstr "Site bearbeiten"
+
+#: src/pages/SitesPage.tsx
+msgid "Site gelöscht"
+msgstr "Site gelöscht"
+
+#: src/pages/SitesPage.tsx
+msgid "Site hinzufügen"
+msgstr "Site hinzufügen"
+
+#: src/pages/SitesPage.tsx
+msgid "Site löschen"
+msgstr "Site löschen"
+
+#: src/pages/SitesPage.tsx
+msgid "Site und Daten gelöscht"
+msgstr "Site und Daten gelöscht"
+
+#: src/pages/SitesPage.tsx
+msgid "Site-Name"
+msgstr "Site-Name"
+
+#: src/App.tsx
+#: src/pages/SitesPage.tsx
+msgid "Sites"
+msgstr "Sites"
+
+#: src/pages/SitesPage.tsx
+msgid "Speichern"
+msgstr "Speichern"
+
+#: src/pages/OverviewPage.tsx
+msgid "Top-Events"
+msgstr "Top-Events"
+
+#: src/pages/OverviewPage.tsx
+msgid "Top-Referrer"
+msgstr "Top-Referrer"
+
+#: src/pages/OverviewPage.tsx
+msgid "Top-Seiten"
+msgstr "Top-Seiten"
+
+#: src/App.tsx
+msgid "Übersicht"
+msgstr "Übersicht"
+
+#: src/components/ApiErrorAlert.tsx
+msgid "Unbekannter Fehler"
+msgstr "Unbekannter Fehler"
+
+#: src/pages/OverviewPage.tsx
+#: src/pages/RealtimePage.tsx
+msgid "Unique Besucher"
+msgstr "Unique Besucher"
+
+#: src/pages/EventsPage.tsx
+msgid "URL"
+msgstr "URL"
+
+#: src/pages/RealtimePage.tsx
+msgid "Verbindung getrennt – erneuter Versuch in 3s…"
+msgstr "Verbindung getrennt – erneuter Versuch in 3s…"
+
+#: src/pages/EventsPage.tsx
+msgid "Weiter"
+msgstr "Weiter"
+
+#: src/pages/SitesPage.tsx
+msgid "z. B. Mein Blog"
+msgstr "z. B. Mein Blog"
+
+#: src/pages/EventsPage.tsx
+msgid "Zeitpunkt"
+msgstr "Zeitpunkt"
+
+#: src/pages/EventsPage.tsx
+msgid "Zurück"
+msgstr "Zurück"

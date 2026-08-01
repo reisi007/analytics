@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { useToast } from '../context/ToastContext'
@@ -27,15 +29,15 @@ export function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-base-200">
       <div className="flex flex-col items-center gap-2">
         <img src="/favicon.svg" alt="Analytics Logo" className="h-14 w-14 rounded-box" />
-        <span className="text-2xl font-bold">Analytics</span>
+        <span className="text-2xl font-bold"><Trans>Analytics</Trans></span>
       </div>
       <div className="card w-full max-w-sm bg-base-100 shadow-sm">
         <div className="card-body">
-          <h1 className="card-title">Anmeldung</h1>
+          <h1 className="card-title"><Trans>Anmeldung</Trans></h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="form-control w-full">
               <div className="label">
-                <span className="label-text">E-Mail</span>
+                <span className="label-text"><Trans>E-Mail</Trans></span>
               </div>
               <input
                 type="email"
@@ -47,7 +49,7 @@ export function LoginPage() {
             </label>
             <label className="form-control w-full">
               <div className="label">
-                <span className="label-text">Passwort</span>
+                <span className="label-text"><Trans>Passwort</Trans></span>
               </div>
               <input
                 type="password"
@@ -58,7 +60,7 @@ export function LoginPage() {
               />
             </label>
             <button type="submit" disabled={submitting} className={`btn btn-primary w-full mt-6 ${submitting ? 'btn-disabled' : ''}`}>
-              {submitting ? 'Anmelden…' : 'Anmelden'}
+              {submitting ? t`Anmelden…` : t`Anmelden`}
             </button>
           </form>
         </div>

@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro'
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
@@ -66,7 +67,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div key={toast.id} role="alert" className={`alert ${alertClass[toast.type]}`}>
             <span>{toast.message}</span>
-            <button type="button" className="btn btn-ghost btn-xs" aria-label="Schließen" onClick={() => dismiss(toast.id)}>
+            <button type="button" className="btn btn-ghost btn-xs" aria-label={t`Schließen`} onClick={() => dismiss(toast.id)}>
               ✕
             </button>
           </div>

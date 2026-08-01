@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderWithProviders } from '../test/render'
 import { OverviewPage } from './OverviewPage'
 
 const summaryFixture = {
@@ -36,7 +37,7 @@ describe('OverviewPage', () => {
 
   it('renders totals, chart and top lists from the summary', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => summaryFixture })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <OverviewPage />
       </MemoryRouter>,
@@ -53,7 +54,7 @@ describe('OverviewPage', () => {
 
   it('shows an error alert when the request fails', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <OverviewPage />
       </MemoryRouter>,
@@ -63,7 +64,7 @@ describe('OverviewPage', () => {
 
   it('refetches with a new range when a range button is clicked', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => summaryFixture })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <OverviewPage />
       </MemoryRouter>,
@@ -83,7 +84,7 @@ describe('OverviewPage', () => {
       ok: true,
       json: async () => ({ ...summaryFixture, top_pages: [{ url: longUrl, pageviews: 5 }] }),
     })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <OverviewPage />
       </MemoryRouter>,

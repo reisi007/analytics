@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useEffect, useState } from 'react'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { useSite } from '../context/SiteContext'
@@ -42,7 +44,7 @@ export function EventsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">Events</h1>
+        <h1 className="text-lg font-semibold"><Trans>Events</Trans></h1>
         <input
           type="text"
           value={name}
@@ -50,7 +52,7 @@ export function EventsPage() {
             setName(event.target.value)
             setPage(1)
           }}
-          placeholder="Event-Name filtern"
+          placeholder={t`Event-Name filtern`}
           className="input input-bordered input-sm w-full max-w-xs"
         />
       </div>
@@ -63,10 +65,10 @@ export function EventsPage() {
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>URL</th>
-                  <th>Payload</th>
-                  <th>Zeitpunkt</th>
+                  <th><Trans>Name</Trans></th>
+                  <th><Trans>URL</Trans></th>
+                  <th><Trans>Payload</Trans></th>
+                  <th><Trans>Zeitpunkt</Trans></th>
                 </tr>
               </thead>
               <tbody>
@@ -86,7 +88,7 @@ export function EventsPage() {
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-base-content/60">
-              {total > 0 ? `${from}–${to} von ${total}` : 'Keine Events'}
+              {total > 0 ? t`${from}–${to} von ${total}` : t`Keine Events`}
             </span>
             <div className="join">
               <button
@@ -95,16 +97,16 @@ export function EventsPage() {
                 disabled={!hasPrev}
                 className="btn btn-sm join-item"
               >
-                Zurück
+                <Trans>Zurück</Trans>
               </button>
-              <span className="btn btn-sm join-item btn-disabled">Seite {result?.current_page ?? 1}</span>
+              <span className="btn btn-sm join-item btn-disabled">{t`Seite ${result?.current_page ?? 1}`}</span>
               <button
                 type="button"
                 onClick={() => setPage((current) => current + 1)}
                 disabled={!hasNext}
                 className="btn btn-sm join-item"
               >
-                Weiter
+                <Trans>Weiter</Trans>
               </button>
             </div>
           </div>

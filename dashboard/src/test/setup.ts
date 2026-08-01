@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
+if (typeof navigator !== 'undefined') {
+  Object.defineProperty(navigator, 'language', { value: 'de-DE', configurable: true })
+}
+
 if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon !== 'function') {
   Object.defineProperty(navigator, 'sendBeacon', {
     value: vi.fn(() => true),

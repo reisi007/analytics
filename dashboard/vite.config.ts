@@ -1,10 +1,12 @@
 /// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import babel from '@rolldown/plugin-babel'
+import lingui, { linguiTransformerBabelPreset } from '@lingui/vite-plugin'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), lingui(), babel({ presets: [linguiTransformerBabelPreset()] })],
   server: {
     port: 5173,
     proxy: {

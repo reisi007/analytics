@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderWithProviders } from '../test/render'
 import { EventsPage } from './EventsPage'
 
 const paginatorFixture = {
@@ -38,7 +39,7 @@ describe('EventsPage', () => {
 
   it('renders event rows and payloads from the paginator', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => paginatorFixture })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <EventsPage />
       </MemoryRouter>,
@@ -53,7 +54,7 @@ describe('EventsPage', () => {
 
   it('disables prev on the first page and enables next', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => paginatorFixture })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <EventsPage />
       </MemoryRouter>,
@@ -68,7 +69,7 @@ describe('EventsPage', () => {
 
   it('filters by name and navigates to the next page', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => paginatorFixture })
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <EventsPage />
       </MemoryRouter>,

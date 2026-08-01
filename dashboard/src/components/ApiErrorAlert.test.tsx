@@ -1,16 +1,17 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ApiError, type ApiErrorDetails } from '../lib/api'
+import { renderWithProviders } from '../test/render'
 import { ApiErrorAlert } from './ApiErrorAlert'
 
 describe('ApiErrorAlert', () => {
   it('renders a generic message for non-ApiError errors', () => {
-    render(<ApiErrorAlert error={new Error('kaputt')} />)
+    renderWithProviders(<ApiErrorAlert error={new Error('kaputt')} />)
     expect(screen.getByText('kaputt')).toBeInTheDocument()
   })
 
   it('renders the status badge and message for an ApiError without details', () => {
-    render(<ApiErrorAlert error={new ApiError(500, null)} />)
+    renderWithProviders(<ApiErrorAlert error={new ApiError(500, null)} />)
     expect(screen.getByText('500')).toBeInTheDocument()
     expect(screen.getByText('Request fehlgeschlagen: 500')).toBeInTheDocument()
   })
@@ -19,7 +20,7 @@ describe('ApiErrorAlert', () => {
     const details: ApiErrorDetails = {
       message: 'Route [login] not defined.',
     }
-    render(<ApiErrorAlert error={new ApiError(500, details)} />)
+    renderWithProviders(<ApiErrorAlert error={new ApiError(500, details)} />)
     expect(screen.getByText('Route [login] not defined.')).toBeInTheDocument()
     expect(screen.getByText('500')).toBeInTheDocument()
     expect(screen.queryByText(/RouteNotFoundException/)).not.toBeInTheDocument()
@@ -28,7 +29,7 @@ describe('ApiErrorAlert', () => {
   })
 
   it('renders nothing when error is null', () => {
-    const { container } = render(<ApiErrorAlert error={null} />)
+    const { container } = renderWithProviders(<ApiErrorAlert error={null} />)
     expect(container).toBeEmptyDOMElement()
   })
 })

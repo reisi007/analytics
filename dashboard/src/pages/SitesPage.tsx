@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useEffect, useState } from 'react'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { useSite } from '../context/SiteContext'
@@ -34,24 +36,24 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
   const submit = async () => {
     const site = siteName.trim()
     if (!site) {
-      toast.error('Name erforderlich')
+      toast.error(t`Name erforderlich`)
       return
     }
     const aliasesList = splitAliases(aliases)
     if (aliasesList.length === 0 && aliases.trim().length > 0) {
-      toast.error('Alle Aliases sind ungültig')
+      toast.error(t`Alle Aliases sind ungültig`)
       return
     }
     setSubmitting(true)
     try {
       await createSite({ site, aliases: aliasesList })
-      toast.success('Site angelegt')
+      toast.success(t`Site angelegt`)
       setSiteName('')
       setAliases('')
       refresh()
       onCreated()
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Fehler')
+      toast.error(err instanceof Error ? err.message : t`Fehler`)
     } finally {
       setSubmitting(false)
     }
@@ -60,28 +62,28 @@ function SiteForm({ onCreated }: { onCreated: () => void }) {
   return (
     <div className="card bg-base-100 shadow-sm">
       <div className="card-body">
-        <h2 className="card-title text-base">Neue Site</h2>
+        <h2 className="card-title text-base"><Trans>Neue Site</Trans></h2>
         <div className="grid gap-3 md:grid-cols-2">
           <input
             type="text"
             value={siteName}
             onChange={(event) => setSiteName(event.target.value)}
-            placeholder="z. B. Mein Blog"
-            aria-label="Site-Name"
+            placeholder={t`z. B. Mein Blog`}
+            aria-label={t`Site-Name`}
             className="input input-bordered w-full"
           />
           <input
             type="text"
             value={aliases}
             onChange={(event) => setAliases(event.target.value)}
-            placeholder="Aliases (kommagetrennt)"
-            aria-label="Aliases"
+            placeholder={t`Aliases (kommagetrennt)`}
+            aria-label={t`Aliases`}
             className="input input-bordered w-full"
           />
         </div>
         <div>
           <button type="button" onClick={() => void submit()} disabled={submitting} className="btn btn-primary btn-sm">
-            Site hinzufügen
+            <Trans>Site hinzufügen</Trans>
           </button>
         </div>
       </div>
@@ -103,18 +105,18 @@ function EditModal({ row, onClose, onSaved }: { row: SiteRow | null; onClose: ()
     if (!row) return
     const aliasesList = splitAliases(aliases)
     if (aliasesList.length === 0 && aliases.trim().length > 0) {
-      toast.error('Alle Aliases sind ungültig')
+      toast.error(t`Alle Aliases sind ungültig`)
       return
     }
     setSubmitting(true)
     try {
       await updateSite(row.id, { aliases: aliasesList })
-      toast.success('Site aktualisiert')
+      toast.success(t`Site aktualisiert`)
       refresh()
       onSaved()
       onClose()
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Fehler')
+      toast.error(err instanceof Error ? err.message : t`Fehler`)
     } finally {
       setSubmitting(false)
     }
@@ -124,12 +126,12 @@ function EditModal({ row, onClose, onSaved }: { row: SiteRow | null; onClose: ()
     row && (
       <dialog open className="modal modal-open" role="dialog" aria-modal="true">
         <div className="modal-box">
-          <h2 className="text-lg font-semibold">Site bearbeiten</h2>
+          <h2 className="text-lg font-semibold"><Trans>Site bearbeiten</Trans></h2>
           <p className="mt-1 text-sm text-base-content/70">
             {row.site}
           </p>
           <label className="label" htmlFor="edit-aliases">
-            <span className="label-text">Aliases (kommagetrennt)</span>
+            <span className="label-text"><Trans>Aliases (kommagetrennt)</Trans></span>
           </label>
           <input
             id="edit-aliases"
@@ -140,10 +142,10 @@ function EditModal({ row, onClose, onSaved }: { row: SiteRow | null; onClose: ()
           />
           <div className="modal-action">
             <button type="button" className="btn btn-sm" onClick={onClose}>
-              Abbrechen
+              <Trans>Abbrechen</Trans>
             </button>
             <button type="button" className="btn btn-primary btn-sm" onClick={() => void save()} disabled={submitting}>
-              Speichern
+              <Trans>Speichern</Trans>
             </button>
           </div>
         </div>
@@ -168,12 +170,12 @@ function DeleteModal({ row, onClose, onDeleted }: { row: SiteRow | null; onClose
     setSubmitting(true)
     try {
       await deleteSite(row.id, deleteData)
-      toast.success(deleteData ? 'Site und Daten gelöscht' : 'Site gelöscht')
+      toast.success(deleteData ? t`Site und Daten gelöscht` : t`Site gelöscht`)
       refresh()
       onDeleted()
       onClose()
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Fehler')
+      toast.error(err instanceof Error ? err.message : t`Fehler`)
     } finally {
       setSubmitting(false)
     }
@@ -183,10 +185,9 @@ function DeleteModal({ row, onClose, onDeleted }: { row: SiteRow | null; onClose
     row && (
       <dialog open className="modal modal-open" role="dialog" aria-modal="true">
         <div className="modal-box">
-          <h2 className="text-lg font-semibold">Site löschen</h2>
+          <h2 className="text-lg font-semibold"><Trans>Site löschen</Trans></h2>
           <p className="mt-1 text-sm">
-            Site „{row.site}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten
-            bleiben erhalten.
+            {t`Site „${row.site}“ löschen? Ohne Datenlöschung bleibt der Eintrag aus dem Tracker entfernt, historische Daten bleiben erhalten.`}
           </p>
           <label className="label cursor-pointer justify-start gap-3">
             <input
@@ -195,11 +196,11 @@ function DeleteModal({ row, onClose, onDeleted }: { row: SiteRow | null; onClose
               onChange={(event) => setDeleteData(event.target.checked)}
               className="checkbox checkbox-error checkbox-sm"
             />
-            <span className="label-text">Getrackte Daten mitlöschen (unwiderruflich)</span>
+            <span className="label-text"><Trans>Getrackte Daten mitlöschen (unwiderruflich)</Trans></span>
           </label>
           <div className="modal-action">
             <button type="button" className="btn btn-sm" onClick={onClose}>
-              Abbrechen
+              <Trans>Abbrechen</Trans>
             </button>
             <button
               type="button"
@@ -207,7 +208,7 @@ function DeleteModal({ row, onClose, onDeleted }: { row: SiteRow | null; onClose
               onClick={() => void confirmDelete()}
               disabled={submitting}
             >
-              Löschen
+              <Trans>Löschen</Trans>
             </button>
           </div>
         </div>
@@ -243,7 +244,7 @@ export function SitesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Sites</h1>
+      <h1 className="text-lg font-semibold"><Trans>Sites</Trans></h1>
 
       <SiteForm onCreated={reload} />
 
@@ -255,10 +256,10 @@ export function SitesPage() {
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Site</th>
-                  <th>Aliases</th>
-                  <th>Erstellt</th>
-                  <th>Aktionen</th>
+                  <th><Trans>Site</Trans></th>
+                  <th><Trans>Aliases</Trans></th>
+                  <th><Trans>Erstellt</Trans></th>
+                  <th><Trans>Aktionen</Trans></th>
                 </tr>
               </thead>
               <tbody>
@@ -286,14 +287,14 @@ export function SitesPage() {
                           className="btn btn-ghost btn-xs"
                           onClick={() => setEditRow(row)}
                         >
-                          Bearbeiten
+                          <Trans>Bearbeiten</Trans>
                         </button>
                         <button
                           type="button"
                           className="btn btn-ghost btn-xs"
                           onClick={() => setDeleteRow(row)}
                         >
-                          Löschen
+                          <Trans>Löschen</Trans>
                         </button>
                       </div>
                     </td>

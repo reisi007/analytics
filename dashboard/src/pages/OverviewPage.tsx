@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useEffect, useState } from 'react'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { SeriesChart } from '../components/SeriesChart'
@@ -5,11 +7,13 @@ import { StatCard } from '../components/StatCard'
 import { useSite } from '../context/SiteContext'
 import { fetchSummary, type Summary } from '../lib/api'
 
-const RANGES = [
-  { days: 7, label: '7 Tage' },
-  { days: 30, label: '30 Tage' },
-  { days: 90, label: '90 Tage' },
-]
+function rangeOptions() {
+  return [
+    { days: 7, label: t`7 Tage` },
+    { days: 30, label: t`30 Tage` },
+    { days: 90, label: t`90 Tage` },
+  ]
+}
 
 function toDateParam(date: Date): string {
   const year = date.getUTCFullYear()
@@ -52,13 +56,14 @@ export function OverviewPage() {
   }, [site, range])
 
   const totals = summary?.totals
+  const ranges = rangeOptions()
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">{site === '' ? 'Alle Webseiten' : site}</h1>
+        <h1 className="text-lg font-semibold">{site === '' ? t`Alle Webseiten` : site}</h1>
         <div className="join">
-          {RANGES.map((option) => (
+          {ranges.map((option) => (
             <button
               key={option.days}
               type="button"
@@ -74,9 +79,9 @@ export function OverviewPage() {
       {error != null && <ApiErrorAlert error={error} />}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard title="Seitenaufrufe" value={totals?.pageviews ?? 0} />
-        <StatCard title="Unique Besucher" value={totals?.unique ?? 0} />
-        <StatCard title="Events" value={totals?.events ?? 0} />
+        <StatCard title={t`Seitenaufrufe`} value={totals?.pageviews ?? 0} />
+        <StatCard title={t`Unique Besucher`} value={totals?.unique ?? 0} />
+        <StatCard title={t`Events`} value={totals?.events ?? 0} />
       </div>
 
       <SeriesChart series={summary?.series ?? []} />
@@ -84,13 +89,13 @@ export function OverviewPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body">
-            <h2 className="card-title">Top-Seiten</h2>
+            <h2 className="card-title"><Trans>Top-Seiten</Trans></h2>
             <div className="overflow-x-auto">
               <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Seite</th>
-                  <th className="text-right">Aufrufe</th>
+                  <th><Trans>Seite</Trans></th>
+                  <th className="text-right"><Trans>Aufrufe</Trans></th>
                 </tr>
               </thead>
               <tbody>
@@ -110,13 +115,13 @@ export function OverviewPage() {
 
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body">
-            <h2 className="card-title">Top-Referrer</h2>
+            <h2 className="card-title"><Trans>Top-Referrer</Trans></h2>
             <div className="overflow-x-auto">
               <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Referrer</th>
-                  <th className="text-right">Aufrufe</th>
+                  <th><Trans>Referrer</Trans></th>
+                  <th className="text-right"><Trans>Aufrufe</Trans></th>
                 </tr>
               </thead>
               <tbody>
@@ -136,13 +141,13 @@ export function OverviewPage() {
 
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body">
-            <h2 className="card-title">Top-Events</h2>
+            <h2 className="card-title"><Trans>Top-Events</Trans></h2>
             <div className="overflow-x-auto">
               <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Event</th>
-                  <th className="text-right">Anzahl</th>
+                  <th><Trans>Event</Trans></th>
+                  <th className="text-right"><Trans>Anzahl</Trans></th>
                 </tr>
               </thead>
               <tbody>
