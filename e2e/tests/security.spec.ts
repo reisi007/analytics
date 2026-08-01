@@ -76,6 +76,8 @@ test('Mehr-Site-Aggregation liefert exakte Summen (inkl. www→Apex)', async ({ 
     title: 'Www Apex Test',
   })
 
+  // top_pages gruppiert nach Pfad ohne Query-String → erwartet den Pfad, nicht die volle URL
+
   await siteHelper.track(`https://${siteB}/`, {
     type: 'pageview',
     url: `https://${siteB}/page-b`,
@@ -85,7 +87,7 @@ test('Mehr-Site-Aggregation liefert exakte Summen (inkl. www→Apex)', async ({ 
   const summaryA = await siteHelper.summary({ site: siteA, ...range })
   expect(summaryA.totals.pageviews).toBe(3)
   expect(summaryA.totals.events).toBe(0)
-  expect(summaryA.top_pages.some((page) => page.url === wwwUrl)).toBe(true)
+  expect(summaryA.top_pages.some((page) => page.url === '/e2e-www-test')).toBe(true)
 
   const summaryB = await siteHelper.summary({ site: siteB, ...range })
   expect(summaryB.totals.pageviews).toBe(1)
