@@ -16,17 +16,17 @@ final class ReportTime
 
     public static function now(): Carbon
     {
-        return Carbon::now(static::timezone());
+        return Carbon::now(self::timezone());
     }
 
     public static function today(): Carbon
     {
-        return Carbon::today(static::timezone());
+        return Carbon::today(self::timezone());
     }
 
     public static function parse(string $date): Carbon
     {
-        return Carbon::parse($date, static::timezone());
+        return Carbon::parse($date, self::timezone());
     }
 
     /**

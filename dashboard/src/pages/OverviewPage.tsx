@@ -95,7 +95,9 @@ export function OverviewPage() {
               <tbody>
                 {(summary?.top_pages ?? []).map((page) => (
                   <tr key={page.url}>
-                    <td className="font-mono text-xs">{page.url}</td>
+                    <td className="font-mono text-xs">
+                      <span className="block max-w-[24rem] truncate" title={page.url}>{page.url}</span>
+                    </td>
                     <td className="text-right">{page.pageviews}</td>
                   </tr>
                 ))}
@@ -117,7 +119,9 @@ export function OverviewPage() {
               <tbody>
                 {(summary?.top_referrers ?? []).map((referrer) => (
                   <tr key={referrer.referrer}>
-                    <td className="font-mono text-xs">{referrer.referrer}</td>
+                    <td className="font-mono text-xs">
+                      <span className="block max-w-[24rem] truncate" title={referrer.referrer}>{referrer.referrer}</span>
+                    </td>
                     <td className="text-right">{referrer.pageviews}</td>
                   </tr>
                 ))}

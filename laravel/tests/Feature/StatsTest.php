@@ -218,6 +218,36 @@ class StatsTest extends TestCase
         $this->assertSame(2, $third);
     }
 
+    public function test_top_pages_grouped_by_path_without_query_params(): void
+    {
+        $token = $this->login();
+
+        PageView::create([
+            'site' => 'reisinger.pictures',
+            'url' => '/foo?a=1',
+            'title' => 'Foo A',
+            'session_hash' => 'hash-a',
+            'created_at' => now()->subMinutes(30),
+        ]);
+
+        PageView::create([
+            'site' => 'reisinger.pictures',
+            'url' => '/foo?b=2',
+            'title' => 'Foo B',
+            'session_hash' => 'hash-b',
+            'created_at' => now()->subMinutes(30),
+        ]);
+
+        $from = now()->subDays(2)->format('Y-m-d');
+        $to = now()->format('Y-m-d');
+
+        $this->getJson("/ingest/stats/summary?site=reisinger.pictures&from={$from}&to={$to}", $this->authedHeaders($token))
+            ->assertOk()
+            ->assertJsonPath('top_pages.0.url', '/foo')
+            ->assertJsonPath('top_pages.0.pageviews', 2)
+            ->assertJsonCount(1, 'top_pages');
+    }
+
     public function test_summary_rejects_invalid_from_format(): void
     {
         $token = $this->login();

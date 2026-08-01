@@ -76,4 +76,21 @@ describe('OverviewPage', () => {
     await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore))
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain('/ingest/stats/summary?')
   })
+
+  it('keeps the full URL text and title for truncated long URLs', async () => {
+    const longUrl = '/shootings/akt/?subject_prefix=AKT&message=Hallo+Florian%2C%0A%0AWie+geht%27s%3F'
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...summaryFixture, top_pages: [{ url: longUrl, pageviews: 5 }] }),
+    })
+    render(
+      <MemoryRouter>
+        <OverviewPage />
+      </MemoryRouter>,
+    )
+
+    const cell = await screen.findByTitle(longUrl)
+    expect(cell).toHaveTextContent(longUrl)
+    expect(cell.className).toContain('truncate')
+  })
 })

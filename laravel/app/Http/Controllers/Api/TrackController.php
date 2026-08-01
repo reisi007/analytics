@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\PageView;
 use App\Support\SiteDetector;
+use App\Support\Url;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -49,7 +50,7 @@ class TrackController extends Controller
                 'site' => $site,
                 'url' => $validated['url'],
                 'title' => $validated['title'] ?? null,
-                'referrer' => $validated['referrer'] ?? null,
+                'referrer' => Url::utmSource($validated['url']) ?? ($validated['referrer'] ?? null),
                 'screen_width' => $validated['screen']['width'] ?? null,
                 'screen_height' => $validated['screen']['height'] ?? null,
                 'language' => $validated['lang'] ?? null,

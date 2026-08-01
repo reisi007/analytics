@@ -160,7 +160,7 @@ export function RealtimePage() {
                     <span className={`badge badge-xs ${entry.type === 'event' ? 'badge-secondary' : 'badge-primary'}`}>
                       {entry.type === 'event' ? 'Event' : 'Pageview'}
                     </span>
-                    <span className="tooltip font-mono text-xs" data-tip={formatTime(entry.time)}>
+                    <span className="tooltip font-mono text-xs inline-block max-w-[24rem] truncate" data-tip={formatTime(entry.time)} title={entry.url}>
                       {entry.url}
                     </span>
                     <span className="text-xs text-base-content/60">

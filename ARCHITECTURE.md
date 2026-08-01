@@ -154,7 +154,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | `context/ToastContext.tsx` | ToastProvider (daisyUI `toast toast-top toast-end`, Auto-Dismiss 5s), `useToast()` |
 | `tracker.ts` | `sendTrack` (text/plain, sendBeacon→fetch keepalive), `pageviewData`, `trackEvent`, globales `window.trackEvent` |
 | `components/ApiErrorAlert.tsx` | Fehler-UI (Badge + Message) |
-| `components/SiteFavicon.tsx` | Favicon (`https://<site>/favicon.ico`) mit Fallback: Globus für „Alle Sites", Initiale bei Ladefehler |
+| `components/SiteFavicon.tsx` | Favicon für fremde Sites: probiert `favicon.ico` → `.svg` → `.png` → `apple-touch-icon.png` nacheinander (onError + 4s-Timeout), Fallback: Globus für „Alle Sites", Initiale wenn alle fehlschlagen |
 | `components/SeriesChart.tsx`, `StatCard.tsx` | Chart + Stat-Karten |
 | `pages/OverviewPage.tsx` | Summary-Übersicht (7/30/90 Tage), Top-Listen, `rangeParams` in Browser-TZ |
 | `pages/RealtimePage.tsx` | SSE-Client (`EventSource` mit `?token=`, Reconnect 3s, Feed) |

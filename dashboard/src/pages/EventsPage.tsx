@@ -73,7 +73,9 @@ export function EventsPage() {
                 {(result?.data ?? []).map((row) => (
                   <tr key={row.id}>
                     <td className="font-mono text-xs">{row.name}</td>
-                    <td className="font-mono text-xs">{row.url}</td>
+                    <td className="font-mono text-xs">
+                      <span className="block max-w-[24rem] truncate" title={row.url}>{row.url}</span>
+                    </td>
                     <td className="font-mono text-xs">{row.payload != null ? JSON.stringify(row.payload) : '–'}</td>
                     <td className="text-xs">{formatDate(row.created_at)}</td>
                   </tr>

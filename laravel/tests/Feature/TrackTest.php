@@ -228,6 +228,40 @@ class TrackTest extends TestCase
         $this->assertSame(2, PageView::query()->orderBy('id')->pluck('session_hash')->unique()->count());
     }
 
+    public function test_utm_source_becomes_referrer_overriding_client_referrer(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/shootings/akt/?utm_source=newsletter&subject_prefix=AKT',
+            'title' => 'AKT',
+            'referrer' => 'https://example.com/',
+        ], ['Referer' => 'https://reisinger.pictures/'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseHas('pageviews', [
+            'site' => 'reisinger.pictures',
+            'url' => '/shootings/akt/?utm_source=newsletter&subject_prefix=AKT',
+            'referrer' => 'newsletter',
+        ]);
+    }
+
+    public function test_client_referrer_used_when_no_utm_source(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/shootings/akt/',
+            'title' => 'AKT',
+            'referrer' => 'https://example.com/',
+        ], ['Referer' => 'https://reisinger.pictures/'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseHas('pageviews', [
+            'site' => 'reisinger.pictures',
+            'url' => '/shootings/akt/',
+            'referrer' => 'https://example.com/',
+        ]);
+    }
+
     public function test_token_not_leaked_in_error_response(): void
     {
         $token = 'secrettokenvalue123';

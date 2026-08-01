@@ -1,7 +1,7 @@
 # Agents.todo.md — Taskliste
 
 > Der Build Agent arbeitet diese Liste ab. Verifikation ausgelagerter Ergebnisse ist Pflicht (bevorzugt parallel).
-> Fortschritt wird in `Agents.md` unter *Status / Fortschritt* gepflegt.
+> Fortschritt/Status wird hier gepflegt (Historie in Abschnitt 0, offene Tasks darunter).
 > Gelöste Todos werden **entfernt**, sobald sie **verifiziert** sind (Implementierer ≠ Verifizierer). Nicht verifizierte,
 > aber umgesetzte Todos werden **abgehakt** (`[x]`).
 
@@ -40,13 +40,9 @@
 | 27 Files-Upload-Deploy (Variante B) | ✅ | `deployment/docker-compose.prod.files.yml`: Backend aus `ghcr.io/reisi007/php-postgres:8.5`, Laravel-Files als Bind-Mount `/home/webadmin/websites/api-analytics.reisinger.pictures`, `composer_init` (einmalig), Gatekeeper + `mkdir`/`chown` + migrate/seed/cache; `sync.sh` neu (portal-Modell, ohne Modes): Backend `laravel/` + Frontend `dist` via rclone, `rclone-backend-filter.txt`; README „Variante B"; Verifikation 6/6 grün |
 | 28 Doku-Neustrukturierung | ✅ | AGENTS.md geschlankt (Rolle, Toolchain, Regeln, Status); Wissen ausgelagert in **ARCHITECTURE.md** (Architektur, Infra, Deployment, Code-Landkarte) + **TESTING.md** (Test-Stack, Playbook, Fallstricke); AGENTS.md verweist auf beide; offene Audit-Punkte → Agents.todo.md |
 | 29 E2E-Isolation | ✅ | Jede Spec legt eigene eindeutige Site an (SiteHelper `uniqueSite` `*.e2e.local`) + Teardown → **keine leere DB nötig**, parallel-sicher (`workers` 4/2, `--host-resolver-rules`); echte SSE-Push-E2E (realtime.spec), Stream-JWT-403-E2E (security.spec); Backend-Tests ergänzt (WeeklyReport-ohne-Email, Events/Realtime-TTL); README „public" präzisiert; verifiziert: Backend 74, Frontend 68, E2E 17×2 |
+| 30 Produktions-Deployment | ✅ | **Manuell erledigt (2026-08-01):** Portainer Stack `analytics` (Variante A, ENV-Variablen laut README) auf `webnet`; Caddyfile-Block aktiviert (Caddyfile-Repo `reisi007/caddyfile`, `sync.sh`); Release-Sync-Workflow etabliert (lokal `./sync.sh` bzw. `./sync.sh release`) |
 
-## 1. Produktions-Deployment (Server, manuell)
-- [ ] Portainer Stack `analytics` anlegen (`deployment/docker-compose.prod.yml` + ENV-Variablen laut README), Container auf `webnet`
-- [ ] Caddyfile-Block nach Stack-Deploy per `./sync.sh` (Caddyfile-Repo) aktivieren
-- [ ] Nach jedem Release lokal `./sync.sh` (rclone: lokales `dashboard/dist` → `/home/webadmin/websites/analytics`; `./sync.sh release` nutzt stattdessen das letzte GitHub-Release)
-
-## 2. Audit: Security / Code Quality / Testabdeckung (2026-08-01)
+## 1. Audit: Security / Code Quality / Testabdeckung (2026-08-01)
 > Ergebnisse aus 4 parallelen Audit-Subagenten (Backend, Frontend, E2E/Pipeline, Testabdeckung).
 > **Umsetzung erfolgt** und am 2026-08-01 durch separaten Verifier bestätigt (Zero-Failures): Backend 74 Tests, Frontend 68 Tests + typecheck/lint/coverage/build, E2E 17 Tests, Compose config ×3, actionlint — alle grün.
 > Hinweis zu Referenzen: Der Produktions-Caddyfile-Block liegt im separaten **Caddyfile-Repo `reisi007/caddyfile`** (nicht in diesem Repo) — hier nur als Hinweis geführt.
@@ -62,7 +58,11 @@
 ### Offen
 - [ ] **CSP für stats.\*-Domains** (`default-src 'self'; …`) — **im separaten Caddyfile-Repo** umsetzen (stats.*-Block hat dort weder CSP noch `log off`). Nicht in diesem Repo umsetzbar. [Caddyfile-Repo]
 
-## 3. E2E-Teststabilität
+## 3. Tracking: utm_source-Referrer + Top-Seiten ohne Query-Params
+- [ ] **utm_source als Referrer:** Enthält die getrackte URL `utm_source`, ersetzt der Wert den `document.referrer`-Referrer (Campaign-Attribution, serverseitig in `TrackController`). Bestehende Pageviews mit `utm_source` in der URL werden migriert (Referrer überschreiben).
+- [ ] **Top-Seiten ohne Query-Params gruppieren:** `top_pages` gruppiert nach URL-Pfad ohne Query-String (volle URL bleibt gespeichert); Frontend verhindert Text-Overflow bei langen URLs (OverviewPage/EventsPage/RealtimePage).
+
+## 4. E2E-Teststabilität
 > **Umgesetzt (Abschnitt 2, Todo 29):** Jede Spec legt eigene eindeutige Site an (`SiteHelper.uniqueSite` `*.e2e.local`)
 > und räumt im `afterAll`-Teardown auf → Tests sind von der DB-Basis entkoppelt und parallel-sicher.
 > Offen:
@@ -78,9 +78,12 @@
 > Details:
 - Default-Ansicht „Alle Sites": `SiteContext` initialisiert `site=''`, keine Auto-Detection mehr (`detectSite` in `lib/site.ts` entfernt + Test gelöscht) ✅
 - Logo im Header: `Brand` in `App.tsx` zeigt `/favicon.svg` + Text ✅
-- Favicon-Dropdown: `components/SiteFavicon.tsx` (`https://<site>/favicon.ico`, Fallback Globus für „Alle Sites"/Initiale bei Fehler), `SiteSwitcher` als daisyUI-Dropdown (conditional-render, Escape/Outside-Click-Close) ✅
+- Favicon-Dropdown: `components/SiteFavicon.tsx` probiert für fremde Sites mehrere Pfade nacheinander (`favicon.ico` → `.svg` → `.png` → `apple-touch-icon.png`, onError + 4s-Timeout), Fallback Globus für „Alle Sites"/Initiale; `SiteSwitcher` als daisyUI-Dropdown (conditional-render, Escape/Outside-Click-Close) ✅
+- Header-Logo: `Brand` zeigt `/favicon.svg` (per `<picture>` mit `/favicon.ico`-Fallback) ✅
 - Tests: `SiteFavicon.test.tsx`, `SiteContext.test.tsx` neu; `OverviewPage`/`RealtimePage`-Tests an Default `''` angepasst ✅
 - E2E: `e2e/helpers/SiteSwitcherHelper.ts` neu; Specs (`sites`, `00-tracking`, `realtime`, `security`, `sites-management`) auf Dropdown umgestellt ✅
+- **Parallele Arbeit (User) wiederhergestellt/beachtet:** `RealtimePage.tsx` `formatTime`-Tooltip (war fälschlich zurückgerollt → wiederhergestellt) + paralleles last-ids-Reconnect/Dedup-Feature (StreamController/StatsAggregator, `last_pv_id`/`last_event_id`); beide Zustände im Working Tree erhalten.
+- **Hinweis Flakiness:** `RealtimePage.test.tsx` (Fake-Timer-Tests) timed-out vereinzelt nur im Coverage+Parallel-Lauf (`coverage/.tmp`-ENOENT-Race, 5000ms-Timeout) — isoliert und 3× in Folge grün (78/78). Bei erneuten Flakes: `testTimeout`/Pool prüfen.
 
 ## 5. Site-Modell: Label + Aliases (2026-08-01)
 > Anwenderwunsch: **Site = frei wählbarer Name (Label), `aliases` = die Hosts (Domains/Subdomains)**.

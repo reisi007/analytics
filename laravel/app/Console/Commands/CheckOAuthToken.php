@@ -32,7 +32,7 @@ class CheckOAuthToken extends Command
             'grant_type' => 'refresh_token',
         ]);
 
-        if (!$response->successful() || $response->json('error') !== null) {
+        if (! $response->successful() || $response->json('error') !== null) {
             $this->error('OAuth2 refresh token expired or invalid — sending alert.');
 
             if ($webhookUrl !== null && $apiKey !== null) {

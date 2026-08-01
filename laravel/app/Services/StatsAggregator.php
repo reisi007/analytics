@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Event;
 use App\Models\PageView;
 use App\Support\ReportTime;
+use App\Support\Url;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
@@ -103,10 +104,15 @@ class StatsAggregator
         return (clone $query)
             ->selectRaw('url, COUNT(*) as pageviews')
             ->groupBy('url')
-            ->orderByDesc('pageviews')
-            ->limit($limit)
             ->get()
-            ->map(fn ($row) => ['url' => $row->url, 'pageviews' => (int) $row->pageviews])
+            ->groupBy(fn ($row) => Url::path($row->url))
+            ->map(fn ($group) => [
+                'url' => Url::path($group->first()->url),
+                'pageviews' => (int) $group->sum('pageviews'),
+            ])
+            ->sortByDesc('pageviews')
+            ->take($limit)
+            ->values()
             ->all();
     }
 
