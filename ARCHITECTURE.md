@@ -114,7 +114,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 ## Datenmodell (Postgres)
 
 - `pageviews`: `id`, `site` (index), `url`, `title`, `referrer`, `screen_width/height`, `language`, `session_hash` (64, index), `created_at` (index). **Keine `ip`-Spalte.**
-- `events`: `id`, `site` (index), `name` (index), `url`, `payload` (json), `session_hash` (index), `created_at` (index).
+- `events`: `id`, `site` (index), `name` (index), `url`, `payload` (json), `session_hash` (index), `created_at` (index). **`name='pageview'` wird nicht mehr in `events` gespeichert** — solche Events werden als Pageview umgewandelt (Migration `remove_pageview_events` räumte Bestandsdaten auf).
 - `sites`: `id`, `site` (unique, **Label**), `aliases` (json-array, **Hosts**), `created_at`. CORS-Whitelist + Site-Definition.
 - `users`: Admin-Login (Seeder).
 
@@ -124,7 +124,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 | Datei | Aufgabe |
 |---|---|
 | `routes/api.php` | Alle Routen unter `/ingest/*`. Öffentlich: `POST /auth/login`, `POST /track`. `auth:api`-Gruppe: `/auth/logout`, `/auth/me`, `/config/sites`, `/stream`, `/stats/*`, `/sites` CRUD |
-| `app/Http/Controllers/Api/TrackController.php` | `POST /ingest/track`: Site aus Referer, text/plain- oder JSON-Body, validiert, `sessionHash()`, schreibt PageView/Event, antwortet 204 + ACAO |
+| `app/Http/Controllers/Api/TrackController.php` | `POST /ingest/track`: Site aus Referer, text/plain- oder JSON-Body, validiert, `sessionHash()`, schreibt PageView/Event, antwortet 204 + ACAO. **`pageview`-Event** (`type=event, name=pageview`, SPA-Pattern) wird als Pageview umgewandelt. **Dedup:** Pro Besucher (session_hash) zählt eine URL nur, wenn der letzte getrackte Pageview eine andere URL hatte (verhindert SPA-Doppelfall + Reload-Doppelzählung, in beiden Reihenfolgen) |
 | `app/Http/Controllers/Api/AuthController.php` | JWT-Login/Logout/Me |
 | `app/Http/Controllers/Api/StatsController.php` | `summary` (300s-Cache), `events` (60s), `realtime` (15s), `sites`. `from`/`to` via `ReportTime::parse` |
 | `app/Http/Controllers/Api/StreamController.php` | SSE-Endpoint `GET /ingest/stream` (Polling alle 2s, `fetchSince`, `snapshot`-Events) |

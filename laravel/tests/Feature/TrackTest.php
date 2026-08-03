@@ -99,6 +99,109 @@ class TrackTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_pageview_event_counts_as_pageview(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'event',
+            'name' => 'pageview',
+            'url' => '/virtual',
+            'payload' => ['url' => '/virtual'],
+        ], ['Referer' => 'https://reisinger.pictures/'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseHas('pageviews', [
+            'site' => 'reisinger.pictures',
+            'url' => '/virtual',
+        ]);
+        $this->assertDatabaseCount('events', 0);
+    }
+
+    public function test_pageview_event_deduped_when_last_pageview_same_url(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
+
+        $this->postJson('/ingest/track', [
+            'type' => 'event',
+            'name' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseCount('pageviews', 1);
+        $this->assertDatabaseCount('events', 0);
+    }
+
+    public function test_pageview_deduped_when_pageview_event_came_first(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'event',
+            'name' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
+
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseCount('pageviews', 1);
+        $this->assertDatabaseCount('events', 0);
+    }
+
+    public function test_pageview_counts_when_last_pageview_url_differs(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
+
+        $this->postJson('/ingest/track', [
+            'type' => 'event',
+            'name' => 'pageview',
+            'url' => '/bar',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseCount('pageviews', 2);
+        $this->assertDatabaseCount('events', 0);
+    }
+
+    public function test_page_reload_same_url_is_deduplicated(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent']);
+
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'TestAgent'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseCount('pageviews', 1);
+    }
+
+    public function test_pageview_dedup_is_scoped_to_visitor(): void
+    {
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'AgentA']);
+
+        $this->postJson('/ingest/track', [
+            'type' => 'pageview',
+            'url' => '/foo',
+        ], ['Referer' => 'https://reisinger.pictures/', 'User-Agent' => 'AgentB'])
+            ->assertStatus(204);
+
+        $this->assertDatabaseCount('pageviews', 2);
+    }
+
     public function test_session_hash_stable_within_same_day(): void
     {
         $this->postJson('/ingest/track', [

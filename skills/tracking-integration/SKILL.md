@@ -64,6 +64,10 @@ window.trackEvent('cta_click', { cta: 'pricing', position: 'hero' })
 router.subscribe((state) => window.trackEvent('pageview', { url: state.location.pathname }))
 ```
 
+- Ein `pageview`-Event zählt **als Seitenansicht** (wie ein normaler Pageview) und erscheint nicht in den Events.
+- **Deduplizierung:** Pro Besucher wird eine URL nur gezählt, wenn der letzte getrackte Pageview eine andere URL hatte.
+  Das fängt den SPA-Doppelfall ab (Auto-Pageview beim Laden + Router-Event für dieselbe Route zählen nur einmal)
+  und zählt **Seiten-Reloads** derselben URL nicht doppelt. Route-Wechsel auf andere URLs werden normal gezählt.
 - Senden erfolgt via `sendBeacon` (Fallback `fetch` + `keepalive`) → Events gehen auch bei Seitenwechsel/Unload nicht verloren.
 
 ## 5. Erfasste Daten

@@ -122,3 +122,13 @@
 - [x] `.run/🚀 [E2E] Start E2E Stack.run.xml` → ruft `./e2e-up.sh` (IntelliJ, Muster `sync.sh`)
 - [x] Doku: `TESTING.md` (PHPUnit-Mailpit :1027/:8027, Playbook nutzt Dev-Compose, E2E nur durch Agent via `./e2e-up.sh`), `ARCHITECTURE.md` (Ports-Zeilen 25-26/86-88/188, E2E-Mailpit nur intern), `README.md` (49-50, 116-118, 142), `Agents.md` (E2E-Regel + Ports-Note)
 - [x] Verifikation (Verifier ≠ Implementierer): `docker compose config` ×2 (local/test), actionlint `ci.yml`, `php artisan test` grün gegen Dev-Mailpit (läuft bereits), kein Container-Stop/-Restart, kein E2E-Lauf
+
+## 7. pageview-Event als Seitenansicht + Deduplizierung (2026-08-03)
+> Anwenderwunsch: `trackEvent('pageview', …)` (SPA-Pattern) soll wie eine Seitenansicht zählen, aber nicht doppelt,
+> wenn dieselbe URL vom selben Besucher auch als Auto-Pageview getrackt wird (inkl. Seiten-Reloads).
+> **Umgesetzt:** `TrackController::recordPageview()` wandelt `type=event, name=pageview` in einen Pageview um
+> (kein `events`-Eintrag). Dedup pro Besucher (session_hash) + URL: zählt nur, wenn der **letzte** getrackte Pageview
+> eine andere URL hatte — greift in beiden Reihenfolgen (Auto-Pageview ↔ Router-Event) und dedupliziert Reloads.
+> Migration `2026_08_03_000001_remove_pageview_events.php` entfernt Bestands-`events` mit `name='pageview'`.
+> **Tests:** Backend 6 neu (TrackTest, gesamt 93 grün); E2E neu in `00-tracking.spec` (Umwandlung + Dedup).
+> Doku: ARCHITECTURE.md, tracking-integration-Skill.

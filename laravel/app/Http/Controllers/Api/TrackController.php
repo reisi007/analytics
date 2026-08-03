@@ -45,17 +45,11 @@ class TrackController extends Controller
 
         $sessionHash = $this->sessionHash($site, $request);
 
-        if ($validated['type'] === 'pageview') {
-            PageView::create([
-                'site' => $site,
-                'url' => $validated['url'],
-                'title' => $validated['title'] ?? null,
-                'referrer' => Url::utmSource($validated['url']) ?? ($validated['referrer'] ?? null),
-                'screen_width' => $validated['screen']['width'] ?? null,
-                'screen_height' => $validated['screen']['height'] ?? null,
-                'language' => $validated['lang'] ?? null,
-                'session_hash' => $sessionHash,
-            ]);
+        $isPageview = $validated['type'] === 'pageview'
+            || ($validated['type'] === 'event' && $validated['name'] === 'pageview');
+
+        if ($isPageview) {
+            $this->recordPageview($site, $validated, $sessionHash);
         } else {
             Event::create([
                 'site' => $site,
@@ -67,6 +61,38 @@ class TrackController extends Controller
         }
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Ein `pageview`-Event wird wie eine Seitenansicht gezählt. Dedup: Pro Besucher
+     * (session_hash) zählt eine URL nur, wenn der letzte getrackte Pageview eine
+     * andere URL hatte — fängt den SPA-Doppelfall (Auto-Pageview + Router-Event)
+     * und Seiten-Reloads ab. Trifft in beiden Reihenfolgen zu.
+     */
+    private function recordPageview(string $site, array $validated, string $sessionHash): void
+    {
+        $url = $validated['url'];
+
+        $last = PageView::query()
+            ->where('site', $site)
+            ->where('session_hash', $sessionHash)
+            ->latest('id')
+            ->first();
+
+        if ($last !== null && $last->url === $url) {
+            return;
+        }
+
+        PageView::create([
+            'site' => $site,
+            'url' => $url,
+            'title' => $validated['title'] ?? null,
+            'referrer' => Url::utmSource($url) ?? ($validated['referrer'] ?? null),
+            'screen_width' => $validated['screen']['width'] ?? null,
+            'screen_height' => $validated['screen']['height'] ?? null,
+            'language' => $validated['lang'] ?? null,
+            'session_hash' => $sessionHash,
+        ]);
     }
 
     /**

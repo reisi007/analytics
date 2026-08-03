@@ -46,3 +46,34 @@ test('tracked pageview shows up in the overview stats', async ({ page }) => {
   await expect(unique).toHaveText('1')
   await expect(events).toHaveText('1')
 })
+
+test('pageview-Event zählt als Seitenansicht und wird dedupliziert', async () => {
+  const site = uniqueSite('e2e-pageview-event')
+  await siteHelper.ensureSite(site)
+
+  const dedupUrl = `https://${site}/dedup`
+  await siteHelper.track(`https://${site}/`, {
+    type: 'pageview',
+    url: dedupUrl,
+    title: 'Dedup',
+  })
+  await siteHelper.track(`https://${site}/`, {
+    type: 'event',
+    name: 'pageview',
+    url: dedupUrl,
+  })
+
+  const summary = await siteHelper.summary({ site, ...siteHelper.utcRange() })
+  expect(summary.totals.pageviews).toBe(1)
+  expect(summary.totals.events).toBe(0)
+
+  await siteHelper.track(`https://${site}/`, {
+    type: 'event',
+    name: 'pageview',
+    url: `https://${site}/virtual`,
+  })
+
+  const after = await siteHelper.summary({ site, ...siteHelper.utcRange() })
+  expect(after.totals.pageviews).toBe(2)
+  expect(after.totals.events).toBe(0)
+})
