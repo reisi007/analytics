@@ -23,7 +23,7 @@ dashboard/                # React SPA + x7k2p.js-Tracker-Build
 e2e/                      # Playwright-E2E-Tests
 docker/Dockerfile         # Backend-Image (pdo_pgsql)
 docker-compose.local.yml  # Lokale Infra: Postgres :5433, Mailpit :1027/:8027
-docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit :1028/:8028, Web :8081
+docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit (nur intern), Web :8081
 deployment/               # docker-compose.prod.yml (A) + prod.files.yml (B)
 Caddyfile.e2e             # Caddy für E2E-Stack
 .github/workflows/ci.yml  # CI/CD
@@ -84,8 +84,8 @@ sync.sh                   # rclone-Deploy (portal-Modell)
   | Service | Local | Test/E2E |
   |---|---|---|
   | Postgres | 5433 | 5434 |
-  | Mailpit SMTP | 1027 | 1028 |
-  | Mailpit Web/API | 8027 | 8028 |
+  | Mailpit SMTP | 1027 | – (intern im E2E-Stack) |
+  | Mailpit Web/API | 8027 | – (intern im E2E-Stack) |
   | E2E-Web | – | 8081 |
 
 ## Deployment
@@ -185,7 +185,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 ### CI (`ci.yml`)
 | Job | Aufgabe |
 |---|---|
-| `php-tests` | PHPUnit parallel (`--processes=4`), Mailpit-Service auf :1028/:8028 |
+| `php-tests` | PHPUnit parallel (`--processes=4`), Mailpit-Service auf :1027/:8027 |
 | `frontend-tests` | Typecheck, Vitest, Build, Upload `x7k2p.js` |
 | `build-image` | Docker-Image nach GHCR (main→`latest`/`test`, PR→`pr-N`/`test`, sonst Branch) |
 | `e2e-tests` | Playwright gegen `test`-Stack (hängt an `build-image`, zieht `:test`) |

@@ -51,9 +51,6 @@ services:
     image: axllent/mailpit
     container_name: analytics_mailpit_test
     restart: unless-stopped
-    ports:
-      - "1028:1025"
-      - "8028:8025"
 
   web:
     image: caddy:2-alpine

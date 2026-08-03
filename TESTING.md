@@ -7,7 +7,7 @@
 
 | Ebene | Framework | Basis | Besonderheit |
 |---|---|---|---|
-| Backend | PHPUnit 12 + paratest | SQLite **in-memory** (`DB_DATABASE=:memory:`) | E-Mail-Tests via Mailpit (:1028/:8028) |
+| Backend | PHPUnit 12 + paratest | SQLite **in-memory** (`DB_DATABASE=:memory:`) | E-Mail-Tests via Mailpit (:1027/:8027) |
 | Frontend | Vitest 4 | jsdom (`vite.config.ts`, `src/test/setup.ts`) | `globals: true` |
 | E2E | Playwright 1.62 | Docker-Stack auf `:8081` | `Caddyfile.e2e`, Postgres :5434 |
 
@@ -16,7 +16,7 @@
 - `Feature/`-Tests: `AuthTest`, `StatsTest`, `TrackTest`, `StreamTest`, `SitesApiTest`, `ConfigTest`,
   `TimezoneTest`, `WeeklyReportTest`, `SiteSeederTest`, `SiteCommandTest`, `GmailRestTransportTest`.
 - `Unit/ExampleTest`, `Support/MailpitAssertions` (Mailpit-API-Assertions).
-- `phpunit.xml`: `CACHE_STORE=array`, `JWT_SECRET` fest (Tests), Mailpit :1028/:8028.
+- `phpunit.xml`: `CACHE_STORE=array`, `JWT_SECRET` fest (Tests), Mailpit :1027/:8027.
 - RefreshDatabase + `SiteDetector::flush()` in `setUp` (SiteDetector cached Map statisch).
 - `phpunit.xml` definiert Test-Konfig via `<env>`; `config('analytics.stream.max_runtime')` in Stream-Tests klein setzen.
 
@@ -31,9 +31,13 @@
 ## E2E (`e2e/`)
 
 - Stack: `docker-compose.test.yml` **im Repo-Root** (nicht in `laravel/`!). Services: `db` (:5434 intern), `php`
-  (Image `ghcr.io/reisi007/analytics:${IMAGE_TAG:-test}`, APP_ENV=testing), `mailpit` (:1028/:8028), `web`
-  (Caddy :8081, mountet `dashboard/dist`).
-- `php`-Service läuft **migrations/seed nicht automatisch** → manuell: `docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force`.
+  (Image `ghcr.io/reisi007/analytics:${IMAGE_TAG:-test}`, APP_ENV=testing), `mailpit` (**nur intern**, kein Host-Port),
+  `web` (Caddy :8081, mountet `dashboard/dist`).
+- **On-demand:** Der E2E-Stack wird **nur bei Bedarf** über `./e2e-up.sh` gestartet (Dev-Stack Postgres :5433 +
+  Mailpit :1027/:8027 wird ebenfalls sichergestellt). Default: **kein E2E-Stack gestartet** — PHPUnit läuft mit SQLite
+  in-memory + Dev-Mailpit, ohne E2E-Docker.
+- `php`-Service läuft **migrations/seed nicht automatisch** → `./e2e-up.sh` führt bei einem frischen Start
+  `docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force` aus.
 - Playwright: `npx playwright install --with-deps` dann `npx playwright test`. baseURL `http://localhost:8081`.
 - **Projekte:** `chromium` (Full HD **1920×1080**) und `mobile` (`devices['Pixel 7']`) — die **komplette Suite** läuft auf beiden Viewports.
   `mobile.spec.ts` läuft nur im `mobile`-Projekt (Header-Hamburger, kein Horizontal-Scroll, Overlay-Close, Switcher/Logout).
@@ -51,7 +55,7 @@
 composer install && cp .env.example .env && php artisan key:generate
 php artisan test --parallel --processes=4
 # mit Mailpit-Tests:
-docker compose -f docker-compose.test.yml up -d mailpit
+docker compose -f docker-compose.local.yml up -d mailpit
 
 # Frontend (Arbeitsdir dashboard/)
 pnpm install

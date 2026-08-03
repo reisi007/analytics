@@ -23,8 +23,8 @@ jobs:
       mailpit:
         image: axllent/mailpit
         ports:
-          - 1028:1025
-          - 8028:8025
+          - 1027:1025
+          - 8027:8025
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4

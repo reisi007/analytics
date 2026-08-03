@@ -8,7 +8,7 @@ trait MailpitAssertions
 {
     private function mailpitApi(): string
     {
-        return env('MAILPIT_API', 'http://127.0.0.1:8028/api/v1');
+        return env('MAILPIT_API', 'http://127.0.0.1:8027/api/v1');
     }
 
     protected function getMailpitMessages(): array

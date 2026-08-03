@@ -47,7 +47,7 @@ Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ─�
 ├── docker/
 │   └── Dockerfile            # Backend-Image (php:8.5-fpm-alpine, pdo_pgsql)
 ├── docker-compose.local.yml  # Lokale Infra: Postgres :5433, Mailpit :1027/:8027
-├── docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit :1028/:8028, Web :8081
+├── docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit (nur intern), Web :8081
 ├── deployment/
 │   ├── docker-compose.prod.yml        # Variante A: Portainer-Stack mit Image (öffentlich)
 │   └── docker-compose.prod.files.yml  # Variante B: Files-Upload-Deploy ohne eigenes Image
@@ -113,9 +113,9 @@ composer install && cp .env.example .env && php artisan key:generate
 php artisan test
 php artisan test --parallel --processes=4
 
-# Backend-Tests mit Mailpit (E-Mail-Tests, Test-Mailpit auf :1028/:8028) — vom Repo-Root aus
+# Backend-Tests mit Mailpit (E-Mail-Tests, Dev-Mailpit auf :1027/:8027) — vom Repo-Root aus
 cd ..
-docker compose -f docker-compose.test.yml up -d mailpit
+docker compose -f docker-compose.local.yml up -d mailpit
 
 # Frontend
 cd dashboard
@@ -125,8 +125,8 @@ pnpm test:coverage
 pnpm build
 
 # E2E (Playwright, Stack auf :8081) — docker-compose.test.yml liegt im Repo-Root
-# Die Tests legen eigene eindeutige Sites an und räumen sie auf → kein leeres DB nötig,
-# Stack ist wiederholbar ohne down -v (optional: docker compose -f docker-compose.test.yml down -v).
+# Der E2E-Stack wird nur on-demand via ./e2e-up.sh gestartet (Default: kein E2E-Stack,
+# nicht Teil des normalen Dev-Starts). Manuell alternativ:
 cd ..
 docker compose -f docker-compose.test.yml up -d
 docker compose -f docker-compose.test.yml exec -T php php artisan migrate --seed --force
@@ -139,7 +139,7 @@ GitHub Actions (`.github/workflows/ci.yml`) auf jedem Push/PR:
 
 | Job | Aufgabe |
 |---|---|
-| `php-tests` | PHPUnit (parallel, `--processes=4`) inkl. Coverage (`--coverage`), Mailpit-Service auf :1028/:8028 |
+| `php-tests` | PHPUnit (parallel, `--processes=4`) inkl. Coverage (`--coverage`), Mailpit-Service auf :1027/:8027 |
 | `frontend-tests` | Typecheck, Vitest-Unit-Tests inkl. Coverage (`pnpm test:coverage`), Produktions-Build |
 | `build-image` | Baut das Laravel-Image nach `ghcr.io/reisi007/analytics` und gibt den `image-tag`-Output aus (main → `latest`/`test`, PR → `pr-N-test`, Tag/Branch → `<ref>`/`test`) |
 | `e2e-tests` | Playwright gegen den vom `build-image` gebauten `image-tag`-Stack (hängt an `build-image`), Report-Upload bei Fehlern |

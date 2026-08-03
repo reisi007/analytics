@@ -100,3 +100,25 @@
 > (Backend 74/74, Frontend 76/76, typecheck/lint/build). `SiteDetector::buildMap()` mappt nur noch Aliases,
 > `detectSite()` matcht nur Aliases, `SitesPage` akzeptiert beliebige Site-Namen, Seeder nutzt `Reisinger Pictures`/`All The Rest`.
 - [ ] **Offener Punkt:** Bestandsdaten in Produktion (pageviews/events/sites unter alten Host-Namen) werden NICHT automatisch umbenannt → separates Daten-Migrations-Todo falls gewünscht
+
+## 6. Test-Stack-Konsolidierung: Eine Mailpit für Dev+PHPUnit, E2E nur on-demand (2026-08-02)
+> Analog zum Portal-Projekt (Konsolidierungs-Plan 2026-08-02). Problem: `php artisan test` (SQLite in-memory, kein
+> DB-Bedarf) hängt aktuell an der **Mailpit des E2E-Stacks** (`:1028/:8028`, `docker-compose.test.yml`) — für
+> Backend-Tests muss also unnötig der E2E-Stack-Mailpit laufen. E2E-Tests lesen selbst keine Mail (kein Mailpit-Ref in
+> `e2e/`). Ziel: **eine Mailpit (Dev `:1027/:8027`) für Dev + PHPUnit**; der E2E-Stack bleibt selbst-enthaltend
+> (CI-Isolation; Postgres/Mailpit/Caddy intern), wird aber **nur noch durch den Agenten on-demand** gestartet
+> (`./e2e-up.sh`), default ist nichts E2E-spezifisches gestartet.
+> **Einschränkung (User, 2026-08-02):** Aktuell laufende Container NICHT stoppen/neu starten — ein anderer Agent nutzt
+> den E2E-Stack (analytics_*_test) gerade. Umsetzung daher rein dateibasiert + validierende Checks, kein `down`/
+> `restart`/`--build`-Neustart des laufenden Stacks, kein E2E-Lauf.
+> **Status (2026-08-02, delegiert an Implementierer + Verifier ≠ Implementierer):** ✅ Umgesetzt + verifiziert.
+> Backend `php artisan test` → **87/87 passed** (gegen Dev-Mailpit :1027/:8027, die nur dafür gestartet wurde);
+> `docker compose config` ×2 + `actionlint ci.yml` + `zsh -n e2e-up.sh` grün; kein Container gestoppt/neu gestartet.
+> E2E-Lauf bewusst ausgesetzt (anderer Agent nutzt ggf. den E2E-Stack; `e2e-up.sh` ist idempotent, keine `down`-Schritte).
+- [x] `laravel/phpunit.xml`: `MAIL_PORT` 1028→1027, `MAILPIT_API` `http://127.0.0.1:8028/api/v1`→`http://127.0.0.1:8027/api/v1` (Dev-Mailpit)
+- [x] `.github/workflows/ci.yml` (Job `php-tests`, Mailpit-Service): Ports `1028:1025`/`8028:8025` → `1027:1025`/`8027:8025`
+- [x] `docker-compose.test.yml`: Mailpit-External-Ports (`1028:1025`, `8028:8025`) entfernen — bleibt interner Service für `php` (greift nach Update des laufenden Stacks beim nächsten `up`)
+- [x] `e2e-up.sh` (Repo-Root, wie `sync.sh`): idempotent — Dev-Stack (`docker-compose.local.yml`) hoch falls nötig; E2E-Stack (`:8081`) checken, nur falls down `IMAGE_TAG=test docker compose -f docker-compose.test.yml up -d --build` + `exec -T php php artisan migrate --seed --force`; Zusammenfassung was gestartet/was lief
+- [x] `.run/🚀 [E2E] Start E2E Stack.run.xml` → ruft `./e2e-up.sh` (IntelliJ, Muster `sync.sh`)
+- [x] Doku: `TESTING.md` (PHPUnit-Mailpit :1027/:8027, Playbook nutzt Dev-Compose, E2E nur durch Agent via `./e2e-up.sh`), `ARCHITECTURE.md` (Ports-Zeilen 25-26/86-88/188, E2E-Mailpit nur intern), `README.md` (49-50, 116-118, 142), `Agents.md` (E2E-Regel + Ports-Note)
+- [x] Verifikation (Verifier ≠ Implementierer): `docker compose config` ×2 (local/test), actionlint `ci.yml`, `php artisan test` grün gegen Dev-Mailpit (läuft bereits), kein Container-Stop/-Restart, kein E2E-Lauf
