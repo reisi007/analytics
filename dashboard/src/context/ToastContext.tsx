@@ -1,5 +1,5 @@
 import { t } from '@lingui/core/macro'
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -37,28 +37,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const nextId = useRef(0)
 
-  const dismiss = useCallback((id: number) => {
+  const dismiss = (id: number) => {
     setToasts((current) => current.filter((toast) => toast.id !== id))
-  }, [])
+  }
 
-  const show = useCallback(
-    (message: string, type: ToastType) => {
-      const id = nextId.current++
-      setToasts((current) => [...current, { id, message, type }])
-      window.setTimeout(() => dismiss(id), 5000)
-    },
-    [dismiss],
-  )
+  const show = (message: string, type: ToastType) => {
+    const id = nextId.current++
+    setToasts((current) => [...current, { id, message, type }])
+    window.setTimeout(() => dismiss(id), 5000)
+  }
 
-  const value = useMemo<ToastContextValue>(
-    () => ({
-      success: (message) => show(message, 'success'),
-      error: (message) => show(message, 'error'),
-      warning: (message) => show(message, 'warning'),
-      info: (message) => show(message, 'info'),
-    }),
-    [show],
-  )
+  const value: ToastContextValue = {
+    success: (message) => show(message, 'success'),
+    error: (message) => show(message, 'error'),
+    warning: (message) => show(message, 'warning'),
+    info: (message) => show(message, 'info'),
+  }
 
   return (
     <ToastContext.Provider value={value}>

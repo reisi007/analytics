@@ -120,67 +120,7 @@ Changelog-Konfig: `.git-cliff.toml`.
 
 ## Code-Landkarte
 
-### Backend (`laravel/`)
-| Datei | Aufgabe |
-|---|---|
-| `routes/api.php` | Alle Routen unter `/ingest/*`. Öffentlich: `POST /auth/login`, `POST /track`. `auth:api`-Gruppe: `/auth/logout`, `/auth/me`, `/config/sites`, `/stream`, `/stats/*`, `/sites` CRUD |
-| `app/Http/Controllers/Api/TrackController.php` | `POST /ingest/track`: Site aus Referer, text/plain- oder JSON-Body, validiert, `sessionHash()`, schreibt PageView/Event, antwortet 204 + ACAO. **`pageview`-Event** (`type=event, name=pageview`, SPA-Pattern) wird als Pageview umgewandelt. **Dedup:** Pro Besucher (session_hash) zählt eine URL nur, wenn der letzte getrackte Pageview eine andere URL hatte (verhindert SPA-Doppelfall + Reload-Doppelzählung, in beiden Reihenfolgen) |
-| `app/Http/Controllers/Api/AuthController.php` | JWT-Login/Logout/Me |
-| `app/Http/Controllers/Api/StatsController.php` | `summary` (300s-Cache), `events` (60s), `realtime` (15s), `sites`. `from`/`to` via `ReportTime::parse` |
-| `app/Http/Controllers/Api/StreamController.php` | SSE-Endpoint `GET /ingest/stream` (Polling alle 2s, `fetchSince`, `snapshot`-Events) |
-| `app/Http/Controllers/Api/SitesController.php` | CRUD `/ingest/sites` (auth), Delete optional `?delete_data=1` |
-| `app/Http/Controllers/Api/ConfigController.php` | `GET /ingest/config/sites` → `{site: [aliases]}` |
-| `app/Services/StatsAggregator.php` | Summary/Events/Realtime + Series-Gruppierung in Report-TZ, `recentActivity` |
-| `app/Support/SiteDetector.php` | Alias→Label-Map aus `sites`-Tabelle (nur `aliases` = Hosts), www→Apex, Referer-Detection, `flush()` nach Seeds/Edits |
-| `app/Support/ReportTime.php` | `timezone()`, `now()`, `today()`, `parse()` in Report-TZ |
-| `app/Console/Commands/GenerateWeeklyReport.php` | `report:weekly`, iteriert alle Sites mit Daten |
-| `app/Console/Commands/CheckOAuthToken.php` | `oauth:check-token` (Make-Webhook-Alert) |
-| `app/Console/Commands/SitesAddCommand.php` / `SitesListCommand.php` | `sites:add`/`sites:list` |
-| `app/Mail/Transports/GmailRestTransport.php` | `gmail_rest` Mailer (OAuth2-REST, multipart/related), Make-Webhook-Fallback |
-| `app/Mail/WeeklyReportMail.php` | Wochenbericht-Template (Inline-Styles) |
-| `app/Models/PageView.php`/`Event.php`/`Site.php`/`User.php` | Eloquent-Modelle |
-| `database/seeders/` | `DatabaseSeeder` → `AdminUserSeeder` + `SiteSeeder` (2 Sites `Reisinger Pictures`/`All The Rest` + `localhost` non-prod) |
-| `config/analytics.php` | stream/report/timezone/oauth/make-Konfig (ENV-gesteuert) |
-| `bootstrap/app.php` | `apiPrefix: 'ingest'`, `trustProxies(at:'*')`, `HandleCors` entfernt, JSON-Fehler für `/ingest/*` |
-
-### Frontend (`dashboard/src/`)
-| Datei | Aufgabe |
-|---|---|
-| `main.tsx`, `App.tsx` | React-Bootstrap, Routing (`/login`, ProtectedRoute, `/`, `/realtime`, `/events`, `/sites`), Layout mit Logo im Header + SiteSwitcher als Favicon-Dropdown |
-| `lib/api.ts` | `fetchJson` (Bearer-Auth, 401→Login-Redirect), Typen, URL-Builder, alle API-Calls, `ApiError` |
-| `lib/auth.ts` | Token/User in localStorage (`analytics_token`, `analytics_user`), `login`/`logout`, `onAuthChange` |
-| `lib/site.ts` | `SitesConfig`-Typ (Site → Aliases) |
-| `context/SiteContext.tsx` | Default `site=''` = „Alle Webseiten" (keine Auto-Detection mehr), lädt `config/sites` + `stats/sites`, Site-Switcher-State, `refresh()` |
-| `context/ToastContext.tsx` | ToastProvider (daisyUI `toast toast-top toast-end`, Auto-Dismiss 5s), `useToast()` |
-| `tracker.ts` | `sendTrack` (text/plain, sendBeacon→fetch keepalive), `pageviewData`, `trackEvent`, globales `window.trackEvent` |
-| `components/ApiErrorAlert.tsx` | Fehler-UI (Badge + Message) |
-| `components/SiteFavicon.tsx` | Favicon für fremde Sites: probiert `favicon.ico` → `.svg` → `.png` → `apple-touch-icon.png` nacheinander (onError + 4s-Timeout), Fallback: Globus für „Alle Webseiten", Initiale wenn alle fehlschlagen |
-| `components/SeriesChart.tsx`, `StatCard.tsx` | Chart + Stat-Karten |
-| `pages/OverviewPage.tsx` | Summary-Übersicht (7/30/90 Tage), Top-Listen, `rangeParams` in Browser-TZ |
-| `pages/RealtimePage.tsx` | SSE-Client (`EventSource` mit `?token=`, Reconnect 3s, Feed) |
-| `pages/EventsPage.tsx`, `SitesPage.tsx`, `LoginPage.tsx` | Events-Liste, Sites-Verwaltung (Modals), Login |
-| `vite.config.ts` | Vite + Proxy `/ingest` + Vitest (jsdom) |
-| `vite.tracker.config.ts` | Eigener Build für `x7k2p.js` (Tracker, Anti-Adblock-Name) |
-
-### E2E (`e2e/`)
-| Datei | Aufgabe |
-|---|---|
-| `playwright.config.ts` | baseURL `http://localhost:8081`, chromium, retries (CI 1), `workers` 4/2, `fullyParallel: false`, `--host-resolver-rules=MAP *.e2e.local 127.0.0.1` |
-| `helpers/AuthHelper.ts` | Login/Logout-Helper (Formular, warten auf Redirect) |
-| `helpers/NetworkHelper.ts` | Warten auf API-Antworten (track, login, summary, …) |
-| `helpers/ToastHelper.ts` | Toast-Assertions (daisyUI `.toast .alert`) |
-| `helpers/SiteSwitcherHelper.ts` | Site-Switcher-Dropdown steuern: `select`, `expectMenuContains/Excludes`, `trigger` |
-| `helpers/SiteHelper.ts` | Zentrales Site-Management über API: `ensureSite`, `track`, `summary`, `deleteSite`, `teardown`, `uniqueSite(prefix)` |
-| `tests/00-tracking.spec.ts` | Track-Seite unter eigener `*.e2e.local`-Site → Pageview/Event in Stats (1/1/1) |
-| `tests/auth.spec.ts` | Redirect unauthentifiziert, falsches/wahres Passwort |
-| `tests/realtime.spec.ts` | Realtime-Seite (Counter + Feed) + echter SSE-Push-Test (Track → Feed) |
-| `tests/sites.spec.ts` | Site-Switcher + „Alle Webseiten" (eigene Site) |
-| `tests/sites-management.spec.ts` | Sites-CRUD über UI (Add/Edit/Delete, mit/ohne Daten, eigene Sites) |
-| `tests/security.spec.ts` | 403/401, Stream-JWT-403, Mehr-Site-Aggregation (www→Apex), Events-Seite |
-| `Caddyfile.e2e` (Repo-Root) | Caddy für E2E (fastcgi → `php:9000`, `/x7k2p.js`, SPA-Fallback) |
-
-**E2E-Isolation:** Jede Spec legt ihre eigenen eindeutigen Sites an (`SiteHelper.uniqueSite`) und räumt sie im
-`afterAll`-Teardown ab → Tests brauchen **keine leere DB** mehr und sind **parallel-sicher** (`workers` > 1).
+> Modul-Code-Landkarten: `laravel/Agents.md` (Backend) · `dashboard/Agents.md` (Frontend) · `e2e/Agents.md` (E2E).
 
 ### CI (`ci.yml`)
 | Job | Aufgabe |
