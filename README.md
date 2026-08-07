@@ -46,7 +46,7 @@ Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ─�
 ├── e2e/                      # Playwright-E2E-Tests
 ├── docker/
 │   └── Dockerfile            # Backend-Image (php:8.5-fpm-alpine, pdo_pgsql)
-├── docker-compose.local.yml  # Lokale Infra: Postgres :5433, Mailpit :1027/:8027
+├── docker-compose.local.yml  # Lokale Infra: Mailpit :1027/:8027
 ├── docker-compose.test.yml   # E2E-Stack: Postgres :5434, Mailpit (nur intern), Web :8081
 ├── deployment/
 │   ├── docker-compose.prod.yml        # Variante A: Portainer-Stack mit Image (öffentlich)
@@ -62,13 +62,16 @@ Dashboard (SPA, statisch) ──► stats.*/ingest/stats/* ──► Caddy ─�
 
 ### Infra
 
-Postgres und Mailpit als Docker-Container starten:
+Die lokale Dev-Datenbank ist **SQLite** (`laravel/database/database.sqlite`, per `DB_CONNECTION=sqlite` in
+`laravel/.env` konfiguriert). Es wird kein Postgres mehr lokal benötigt — Postgres bleibt dem E2E-Stack
+(`docker-compose.test.yml`) und der Produktion vorbehalten.
+
+Mailpit als Docker-Container starten (nur für E-Mail-Tests nötig):
 
 ```bash
 docker compose -f docker-compose.local.yml up -d
 ```
 
-- Postgres: `localhost:5433` (DB `analytics`, User `analytics`, Passwort `analytics`)
 - Mailpit: SMTP `localhost:1027`, Web-UI `http://localhost:8027`
 
 ### Backend (Laravel Herd)
@@ -82,7 +85,7 @@ php artisan key:generate
 php artisan jwt:secret
 ```
 
-Die `.env`-Defaults passen bereits zur lokalen Infra (`DB_PORT=5433`, Mailpit `1027`). Sollte der Wert
+Die `.env`-Defaults zeigen bereits auf die lokale SQLite-DB (`DB_DATABASE=database/database.sqlite`, Mailpit `1027`). Sollte der Wert
 `JWT_SECRET` ungesetzt sein, setzt `php artisan jwt:secret` ihn.
 
 ### Dashboard (Vite-Dev)
@@ -99,7 +102,7 @@ Vite läuft auf `http://localhost:5173` und proxyt `/ingest` an `https://trackin
 
 ```bash
 cd laravel
-php artisan migrate --seed
+php artisan migrate:fresh --seed
 ```
 
 legt die Admin-User und die Sites `reisinger.pictures` und `all-the.rest` (plus `localhost`) an.
